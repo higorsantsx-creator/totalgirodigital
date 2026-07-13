@@ -4,7 +4,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
   server: {
     handlers: {
       POST: async ({ params, request }) => {
-        const body = (await request.json()) as { signature_data_url?: string; action?: "sign" | "decline"; reason?: string };
+        const body = (await request.json()) as { signature_data_url?: string; action?: "sign" | "decline"; reason?: string; signer_name?: string };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data: doc, error } = await supabaseAdmin
