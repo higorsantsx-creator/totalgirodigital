@@ -128,13 +128,38 @@ function SignPage() {
 
       <div className="mx-auto grid max-w-7xl gap-6 p-6 lg:grid-cols-3">
         {/* PDF viewer */}
-        <div className="lg:col-span-2">
-          <div className="mb-3 space-y-1">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Documento</p>
-            <h1 className="font-display text-2xl font-bold">{doc.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              Enviado por <span className="font-medium text-foreground">{doc.sender_name}</span>
-            </p>
+        <div className="lg:col-span-2 space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Documento</p>
+            <h1 className="mt-1 font-display text-2xl font-bold">{doc.name}</h1>
+            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enviado por</p>
+                <p className="font-medium">{doc.sender_name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Destinatário</p>
+                <p className="font-medium">{doc.recipient_name}</p>
+              </div>
+              {doc.deadline && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Prazo</p>
+                  <p className="font-medium">{formatDateTime(doc.deadline)}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
+                <StatusBadge status={doc.status} />
+              </div>
+            </div>
+            {doc.message && (
+              <div className="mt-4 rounded-lg border border-border bg-secondary/40 p-3 text-sm">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Mensagem do remetente
+                </p>
+                {doc.message}
+              </div>
+            )}
           </div>
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-inner">
             {doc.pdf_url ? (
