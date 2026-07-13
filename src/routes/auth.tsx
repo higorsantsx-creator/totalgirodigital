@@ -102,7 +102,7 @@ function AuthPage() {
   if (!hydrated) return null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/40 p-6">
+    <div suppressHydrationWarning className="flex min-h-screen items-center justify-center bg-secondary/40 p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-3">
           <div className="rounded-2xl bg-white p-4 shadow-md ring-1 ring-border">
