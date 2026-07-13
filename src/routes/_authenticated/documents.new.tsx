@@ -214,8 +214,8 @@ function NewDocumentPage() {
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Contrato de Serviços" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="rname">Nome do destinatário</Label>
-                <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
+                <Label htmlFor="rname">Destinatário</Label>
+                <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Nome de quem vai assinar" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="msg">Mensagem personalizada (opcional)</Label>
