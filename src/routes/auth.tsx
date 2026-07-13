@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate, useSearch, Link, redirect } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -16,10 +16,6 @@ const search = z.object({ redirect: z.string().optional() });
 export const Route = createFileRoute("/auth")({
   ssr: false,
   validateSearch: search,
-  beforeLoad: async () => {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) throw redirect({ to: "/dashboard" });
-  },
   component: AuthPage,
 });
 
@@ -33,6 +29,16 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
 
   const afterAuth = () => navigate({ to: redirect ?? "/dashboard" });
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!cancelled && data.session) afterAuth();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,7 +81,10 @@ function AuthPage() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
+    sessionStorage.setItem("auth:redirect", redirect ?? "/dashboard");
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: `${window.location.origin}/oauth-callback`,
+    });
     if (result.error) {
       setLoading(false);
       toast.error("Falha ao entrar com Google");
