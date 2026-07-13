@@ -213,15 +213,9 @@ function NewDocumentPage() {
                 <Label htmlFor="name">Nome do documento</Label>
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Contrato de Serviços" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="rname">Nome do destinatário</Label>
-                  <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="remail">E-mail do destinatário</Label>
-                  <Input id="remail" type="email" required value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="rname">Nome do destinatário</Label>
+                <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="msg">Mensagem personalizada (opcional)</Label>
