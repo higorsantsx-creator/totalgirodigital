@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { FileSignature, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import logoAsset from "@/assets/total-giro-logo.png.asset.json";
 
 const search = z.object({ redirect: z.string().optional() });
 
@@ -88,11 +89,13 @@ function AuthPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary/40 p-6">
       <div className="w-full max-w-md space-y-6">
-        <div className="flex items-center justify-center gap-2">
-          <div className="grid size-10 place-items-center rounded-lg bg-accent text-accent-foreground">
-            <FileSignature className="size-5" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="rounded-2xl bg-white p-4 shadow-md ring-1 ring-border">
+            <img src={logoAsset.url} alt="Grupo Total Giro" className="h-14 w-auto" />
           </div>
-          <span className="font-display text-2xl font-bold tracking-tight">SignFlow</span>
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+            Assinaturas Digitais
+          </p>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">

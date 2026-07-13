@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useQueryClient } from "@tanstack/react-query";
+import logoAsset from "@/assets/total-giro-logo.png.asset.json";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -36,13 +37,15 @@ export function AppSidebar() {
     .toUpperCase();
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col border-r border-border bg-sidebar">
+    <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="p-6">
-        <Link to="/dashboard" className="mb-8 flex items-center gap-2">
-          <div className="grid size-8 place-items-center rounded-lg bg-accent font-display font-bold text-accent-foreground">
-            S
+        <Link to="/dashboard" className="mb-8 block">
+          <div className="rounded-lg bg-white p-3 shadow-sm">
+            <img src={logoAsset.url} alt="Grupo Total Giro" className="mx-auto h-12 w-auto" />
           </div>
-          <span className="font-display text-xl font-bold tracking-tight text-foreground">SignFlow</span>
+          <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/60">
+            Assinaturas Digitais
+          </p>
         </Link>
 
         <nav className="space-y-1">
@@ -55,8 +58,8 @@ export function AppSidebar() {
                 className={cn(
                   "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "bg-secondary text-accent"
-                    : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-sm"
+                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
                 <Icon className="size-4" />
@@ -67,18 +70,18 @@ export function AppSidebar() {
         </nav>
       </div>
 
-      <div className="mt-auto border-t border-border p-4">
+      <div className="mt-auto border-t border-sidebar-border p-4">
         <div className="flex items-center gap-3 rounded-md p-2">
-          <div className="grid size-10 place-items-center rounded-full bg-secondary text-xs font-bold">
+          <div className="grid size-10 place-items-center rounded-full bg-sidebar-accent text-xs font-bold text-sidebar-accent-foreground">
             {initials}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{user?.user_metadata?.full_name || user?.email}</p>
-            <p className="truncate text-xs text-muted-foreground">Administrador</p>
+            <p className="truncate text-xs text-sidebar-foreground/60">Administrador</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-secondary hover:text-destructive"
+            className="rounded-md p-2 text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-primary"
             title="Sair"
           >
             <LogOut className="size-4" />
