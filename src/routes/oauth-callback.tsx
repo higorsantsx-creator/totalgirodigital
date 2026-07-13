@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 export const Route = createFileRoute("/oauth-callback")({
   ssr: false,
@@ -17,8 +18,10 @@ function getSafeRedirect() {
 
 function AuthCallbackPage() {
   const navigate = useNavigate();
+  const hydrated = useHydrated();
 
   useEffect(() => {
+    if (!hydrated) return;
     let cancelled = false;
     const finish = async () => {
       const { data } = await supabase.auth.getSession();
@@ -37,7 +40,9 @@ function AuthCallbackPage() {
       cancelled = true;
       window.clearTimeout(timeout);
     };
-  }, [navigate]);
+  }, [navigate, hydrated]);
+
+  if (!hydrated) return null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary/40">

@@ -1,4 +1,5 @@
 import { createFileRoute, isRedirect, Outlet, redirect, useRouter } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { logDiagnostic } from "@/lib/debug-diagnostics";
@@ -39,16 +40,28 @@ function AuthenticatedLayout() {
 
 function AuthenticatedError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const retriedRef = useRef(false);
   logDiagnostic("authenticated.error-boundary", { component: "AuthenticatedError" }, error);
+
+  // Auto-retry once for transient errors (hydration recovery, network blips).
+  useEffect(() => {
+    if (retriedRef.current) return;
+    retriedRef.current = true;
+    const t = window.setTimeout(() => {
+      router.invalidate();
+      reset();
+    }, 150);
+    return () => window.clearTimeout(t);
+  }, [router, reset]);
 
   return (
     <div className="flex min-h-screen bg-background">
       <AppSidebar />
       <main className="flex flex-1 items-center justify-center p-8">
         <div className="max-w-md text-center">
-          <h1 className="font-display text-xl font-semibold">Esta página não carregou</h1>
+          <h1 className="font-display text-xl font-semibold">Recarregando a página…</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Registramos os detalhes técnicos no console para diagnóstico.
+            Se demorar, use os botões abaixo.
           </p>
           <div className="mt-6 flex justify-center gap-2">
             <Button

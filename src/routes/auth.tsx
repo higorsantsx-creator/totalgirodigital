@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 const search = z.object({ redirect: z.string().optional() });
 
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { redirect } = useSearch({ from: "/auth" });
+  const hydrated = useHydrated();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +34,7 @@ function AuthPage() {
   const afterAuth = () => navigate({ to: redirect ?? "/dashboard" });
 
   useEffect(() => {
+    if (!hydrated) return;
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
       if (!cancelled && data.session) afterAuth();
@@ -39,7 +42,7 @@ function AuthPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [hydrated]);
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
@@ -96,8 +99,10 @@ function AuthPage() {
     afterAuth();
   };
 
+  if (!hydrated) return null;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary/40 p-6">
+    <div suppressHydrationWarning className="flex min-h-screen items-center justify-center bg-secondary/40 p-6">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-3">
           <div className="rounded-2xl bg-white p-4 shadow-md ring-1 ring-border">
