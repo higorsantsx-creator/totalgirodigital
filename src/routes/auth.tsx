@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { FileSignature, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import logoAsset from "@/assets/total-giro-logo.png.asset.json";
 
 const search = z.object({ redirect: z.string().optional() });
 
