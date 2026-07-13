@@ -40,7 +40,7 @@ export function AppSidebar() {
     <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
       <div className="p-6">
         <Link to="/dashboard" className="mb-8 block">
-          <div className="rounded-lg bg-white p-3 shadow-sm">
+          <div className="p-3">
             <img src={logoAsset.url} alt="Grupo Total Giro" className="mx-auto h-12 w-auto" />
           </div>
           <p className="mt-3 text-center text-[11px] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/60">
