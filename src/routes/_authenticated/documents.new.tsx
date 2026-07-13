@@ -71,7 +71,7 @@ function NewDocumentPage() {
         owner_id: user.id,
         name,
         recipient_name: recipientName,
-        recipient_email: null,
+        recipient_email: "",
         message: message || null,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         file_path: path,
