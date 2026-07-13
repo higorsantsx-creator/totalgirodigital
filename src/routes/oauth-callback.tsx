@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const Route = createFileRoute("/auth/callback")({
+export const Route = createFileRoute("/oauth-callback")({
   ssr: false,
   component: AuthCallbackPage,
 });
