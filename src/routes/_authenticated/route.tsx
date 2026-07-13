@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect, useRouter } from "@tanstack/react-router";
+import { createFileRoute, isRedirect, Outlet, redirect, useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { logDiagnostic } from "@/lib/debug-diagnostics";
@@ -17,9 +17,7 @@ export const Route = createFileRoute("/_authenticated")({
       logDiagnostic("auth.guard.success", { route: "_authenticated", userId: data.user.id });
       return { user: data.user };
     } catch (error) {
-      if (error instanceof Response || (error != null && typeof error === "object" && "isRedirect" in error)) {
-        throw error;
-      }
+      if (isRedirect(error)) throw error;
       logDiagnostic("auth.guard.failed", { route: "_authenticated" }, error);
       throw redirect({ to: "/auth" });
     }
