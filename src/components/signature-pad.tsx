@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Eraser } from "lucide-react";
 
@@ -28,24 +29,26 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
     ctx.strokeStyle = "#0F172A";
   }, []);
 
-  const getPos = (e: PointerEvent | React.PointerEvent) => {
-    const canvas = canvasRef.current!;
+  const getPos = (e: PointerEvent | ReactPointerEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   };
 
-  const start = (e: React.PointerEvent) => {
+  const start = (e: ReactPointerEvent) => {
     e.preventDefault();
-    const ctx = canvasRef.current?.getContext("2d");
-    if (!ctx) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
     drawing.current = true;
     const { x, y } = getPos(e);
     ctx.beginPath();
     ctx.moveTo(x, y);
-    canvasRef.current!.setPointerCapture(e.pointerId);
+    canvas.setPointerCapture(e.pointerId);
   };
 
-  const move = (e: React.PointerEvent) => {
+  const move = (e: ReactPointerEvent) => {
     if (!drawing.current) return;
     const ctx = canvasRef.current?.getContext("2d");
     if (!ctx) return;

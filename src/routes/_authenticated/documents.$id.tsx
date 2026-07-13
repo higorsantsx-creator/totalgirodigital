@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import type { ComponentType } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/format";
+import { logDiagnostic } from "@/lib/debug-diagnostics";
 import { toast } from "sonner";
 import { ArrowLeft, Copy, Download, Clock, Eye, PenLine, XCircle, TimerOff, FilePlus } from "lucide-react";
 
@@ -18,8 +20,18 @@ function DocumentDetailPage() {
   const { data: doc } = useQuery({
     queryKey: ["document", id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("documents").select("*").eq("id", id).single();
-      if (error) throw error;
+      logDiagnostic("document.detail.query.start", { id });
+      const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
+      if (error) {
+        logDiagnostic("document.detail.query.error", { id }, error);
+        throw error;
+      }
+      if (!data) {
+        const notFoundError = new Error("Documento não encontrado ou sem permissão de acesso.");
+        logDiagnostic("document.detail.query.empty", { id }, notFoundError);
+        throw notFoundError;
+      }
+      logDiagnostic("document.detail.query.success", { id, status: data.status });
       return data;
     },
   });
@@ -27,12 +39,17 @@ function DocumentDetailPage() {
   const { data: history } = useQuery({
     queryKey: ["document-history", id],
     queryFn: async () => {
+      logDiagnostic("document.history.query.start", { id });
       const { data, error } = await supabase
         .from("document_history")
         .select("*")
         .eq("document_id", id)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        logDiagnostic("document.history.query.error", { id }, error);
+        throw error;
+      }
+      logDiagnostic("document.history.query.success", { id, count: data?.length ?? 0 });
       return data ?? [];
     },
   });
@@ -42,15 +59,32 @@ function DocumentDetailPage() {
 
   useEffect(() => {
     if (!doc) return;
+    let mounted = true;
+    setPdfUrl(null);
+    setSignatureUrl(null);
     const filePath = doc.signed_file_path ?? doc.file_path;
-    supabase.storage.from("documents").createSignedUrl(filePath, 3600).then(({ data }) => {
-      if (data) setPdfUrl(data.signedUrl);
+    logDiagnostic("document.signed-url.start", { id: doc.id, hasSignedFile: Boolean(doc.signed_file_path) });
+    supabase.storage.from("documents").createSignedUrl(filePath, 3600).then(({ data, error }) => {
+      if (!mounted) return;
+      if (error || !data) {
+        logDiagnostic("document.signed-url.error", { id: doc.id }, error ?? new Error("Missing document signed URL"));
+        return;
+      }
+      setPdfUrl(data.signedUrl);
     });
     if (doc.signature_path) {
-      supabase.storage.from("signatures").createSignedUrl(doc.signature_path, 3600).then(({ data }) => {
-        if (data) setSignatureUrl(data.signedUrl);
+      supabase.storage.from("signatures").createSignedUrl(doc.signature_path, 3600).then(({ data, error }) => {
+        if (!mounted) return;
+        if (error || !data) {
+          logDiagnostic("document.signature-url.error", { id: doc.id }, error ?? new Error("Missing signature signed URL"));
+          return;
+        }
+        setSignatureUrl(data.signedUrl);
       });
     }
+    return () => {
+      mounted = false;
+    };
   }, [doc]);
 
   if (!doc) {
@@ -61,8 +95,13 @@ function DocumentDetailPage() {
 
   const copyLink = async () => {
     const url = `${window.location.origin}/sign/${doc.access_token}`;
-    await navigator.clipboard.writeText(url);
-    toast.success("Link copiado");
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copiado");
+    } catch (error) {
+      logDiagnostic("document.copy-link.error", { id: doc.id }, error);
+      toast.error("Não foi possível copiar o link.");
+    }
   };
 
   return (
@@ -75,9 +114,9 @@ function DocumentDetailPage() {
             </Link>
           </Button>
           <div>
-            <h1 className="font-display font-semibold">{doc.name}</h1>
+            <h1 className="font-display font-semibold">{doc.name || "Documento sem nome"}</h1>
             <p className="text-xs text-muted-foreground">
-              Para {doc.recipient_name} · {doc.recipient_email}
+              Para {doc.recipient_name || "—"} · {doc.recipient_email || "—"}
             </p>
           </div>
         </div>
@@ -188,7 +227,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 function HistoryIcon({ action }: { action: string }) {
-  const map: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  const map: Record<string, { icon: ComponentType<{ className?: string }>; color: string }> = {
     criado: { icon: FilePlus, color: "text-muted-foreground" },
     enviado: { icon: Clock, color: "text-info" },
     visualizado: { icon: Eye, color: "text-info" },

@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { logDiagnostic } from "@/lib/debug-diagnostics";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,20 +15,37 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("profiles").select("full_name").eq("id", user.id).single().then(({ data }) => {
-      setFullName(data?.full_name ?? "");
-    });
+    let mounted = true;
+    logDiagnostic("settings.profile.query.start", { userId: user.id });
+    supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          logDiagnostic("settings.profile.query.error", { userId: user.id }, error);
+          toast.error("Não foi possível carregar o perfil.");
+          return;
+        }
+        logDiagnostic("settings.profile.query.success", { userId: user.id, hasProfile: Boolean(data) });
+        setFullName(data?.full_name ?? user.user_metadata?.full_name ?? "");
+      });
+    return () => {
+      mounted = false;
+    };
   }, [user]);
 
-  const save = async (e: React.FormEvent) => {
+  const save = async (e: FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) return toast.error("Sessão ainda não carregada.");
     setLoading(true);
     const { error } = await supabase.from("profiles").update({ full_name: fullName }).eq("id", user.id);
     setLoading(false);
@@ -45,13 +64,13 @@ function SettingsPage() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>E-mail</Label>
-              <Input value={user?.email ?? ""} disabled />
+              <Input value={authLoading ? "Carregando..." : user?.email ?? ""} disabled />
             </div>
             <div className="space-y-2">
               <Label htmlFor="fn">Nome completo</Label>
               <Input id="fn" value={fullName} onChange={(e) => setFullName(e.target.value)} />
             </div>
-            <Button disabled={loading}>
+            <Button disabled={loading || authLoading || !user}>
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />} Salvar alterações
             </Button>
           </div>
