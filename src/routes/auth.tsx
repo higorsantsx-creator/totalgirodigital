@@ -34,6 +34,7 @@ function AuthPage() {
   const afterAuth = () => navigate({ to: redirect ?? "/dashboard" });
 
   useEffect(() => {
+    if (!hydrated) return;
     let cancelled = false;
     supabase.auth.getSession().then(({ data }) => {
       if (!cancelled && data.session) afterAuth();
@@ -41,7 +42,7 @@ function AuthPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [hydrated]);
 
   const handleSignIn = async (e: FormEvent) => {
     e.preventDefault();
