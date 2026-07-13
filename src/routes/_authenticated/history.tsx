@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import type { ComponentType } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/lib/format";
 import { logDiagnostic } from "@/lib/debug-diagnostics";
@@ -74,7 +75,7 @@ function HistoryPage() {
 }
 
 function ActionIcon({ action }: { action: string }) {
-  const map: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  const map: Record<string, { icon: ComponentType<{ className?: string }>; color: string }> = {
     criado: { icon: FilePlus, color: "text-muted-foreground" },
     enviado: { icon: Send, color: "text-info" },
     visualizado: { icon: Eye, color: "text-info" },

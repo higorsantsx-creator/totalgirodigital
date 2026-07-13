@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { logDiagnostic } from "@/lib/debug-diagnostics";
@@ -42,7 +43,7 @@ function SettingsPage() {
     };
   }, [user]);
 
-  const save = async (e: React.FormEvent) => {
+  const save = async (e: FormEvent) => {
     e.preventDefault();
     if (!user) return toast.error("Sessão ainda não carregada.");
     setLoading(true);

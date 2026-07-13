@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import type { FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,7 @@ function NewDocumentPage() {
     if (!name) setName(f.name.replace(/\.pdf$/i, ""));
   };
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!file) return toast.error("Selecione um PDF antes de enviar.");
     if (authLoading) return toast.error("A sessão ainda está carregando.");
