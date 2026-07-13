@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, FileSignature, Loader2, ShieldCheck, Clock } from "lucide-react";
