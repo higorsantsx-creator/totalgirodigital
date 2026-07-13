@@ -89,7 +89,7 @@ function NewDocumentPage() {
     // history
     const { error: historyError } = await supabase.from("document_history").insert([
       { document_id: doc.id, action: "criado", actor: user.email },
-      { document_id: doc.id, action: "link_gerado", actor: user.email },
+      { document_id: doc.id, action: "enviado", actor: user.email },
     ]);
     if (historyError) {
       logDiagnostic("documents.new.history.error", { documentId: doc.id }, historyError);
