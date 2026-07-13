@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, FileSignature, Loader2, ShieldCheck, Clock } from "lucide-react";
@@ -35,6 +37,7 @@ function SignPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signature, setSignature] = useState<string | null>(null);
+  const [typedName, setTypedName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
 
@@ -53,12 +56,13 @@ function SignPage() {
   }, [token]);
 
   const submit = async () => {
+    if (!typedName.trim()) return toast.error("Digite seu nome completo");
     if (!signature) return toast.error("Desenhe sua assinatura primeiro");
     setSubmitting(true);
     const res = await fetch(`/api/public/sign/${token}/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sign", signature_data_url: signature }),
+      body: JSON.stringify({ action: "sign", signature_data_url: signature, signer_name: typedName.trim() }),
     });
     setSubmitting(false);
     if (!res.ok) {
@@ -124,13 +128,38 @@ function SignPage() {
 
       <div className="mx-auto grid max-w-7xl gap-6 p-6 lg:grid-cols-3">
         {/* PDF viewer */}
-        <div className="lg:col-span-2">
-          <div className="mb-3 space-y-1">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground">Documento</p>
-            <h1 className="font-display text-2xl font-bold">{doc.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              Enviado por <span className="font-medium text-foreground">{doc.sender_name}</span>
-            </p>
+        <div className="lg:col-span-2 space-y-4">
+          <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Documento</p>
+            <h1 className="mt-1 font-display text-2xl font-bold">{doc.name}</h1>
+            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Enviado por</p>
+                <p className="font-medium">{doc.sender_name}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Destinatário</p>
+                <p className="font-medium">{doc.recipient_name}</p>
+              </div>
+              {doc.deadline && (
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Prazo</p>
+                  <p className="font-medium">{formatDateTime(doc.deadline)}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</p>
+                <StatusBadge status={doc.status} />
+              </div>
+            </div>
+            {doc.message && (
+              <div className="mt-4 rounded-lg border border-border bg-secondary/40 p-3 text-sm">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Mensagem do remetente
+                </p>
+                {doc.message}
+              </div>
+            )}
           </div>
           <div className="overflow-hidden rounded-xl border border-border bg-card shadow-inner">
             {doc.pdf_url ? (
@@ -172,20 +201,24 @@ function SignPage() {
             <>
               <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <h3 className="font-display font-bold text-lg">Finalizar Assinatura</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Desenhe sua assinatura abaixo para confirmar.</p>
-                {doc.message && (
-                  <div className="mt-4 rounded-lg border border-border bg-secondary/40 p-3 text-sm">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Mensagem do remetente
-                    </p>
-                    {doc.message}
-                  </div>
-                )}
-                <div className="mt-4">
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Preencha seu nome e desenhe sua assinatura para confirmar.
+                </p>
+                <div className="mt-4 space-y-1.5">
+                  <Label htmlFor="signer-name">Seu nome completo</Label>
+                  <Input
+                    id="signer-name"
+                    value={typedName}
+                    onChange={(e) => setTypedName(e.target.value)}
+                    placeholder="Digite seu nome"
+                  />
+                </div>
+                <div className="mt-4 space-y-1.5">
+                  <Label>Sua assinatura</Label>
                   <SignaturePad onChange={setSignature} />
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button onClick={submit} disabled={submitting || !signature} className="flex-1">
+                  <Button onClick={submit} disabled={submitting || !signature || !typedName.trim()} className="flex-1">
                     {submitting && <Loader2 className="mr-2 size-4 animate-spin" />} Confirmar
                   </Button>
                   <Button variant="outline" onClick={decline} disabled={submitting}>

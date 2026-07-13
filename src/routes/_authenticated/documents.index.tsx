@@ -21,8 +21,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, MoreHorizontal, Copy, Download, XOctagon, Trash2, Send } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Copy, Download, XOctagon, Trash2, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildWhatsappUrl, whatsappMessage } from "@/lib/whatsapp";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/documents/")({
   component: DocumentsPage,
@@ -30,6 +32,7 @@ export const Route = createFileRoute("/_authenticated/documents/")({
 
 function DocumentsPage() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<DocStatus | "all">("all");
 
@@ -72,6 +75,22 @@ function DocumentsPage() {
       logDiagnostic("documents.copy-link.error", {}, error);
       toast.error("Não foi possível copiar o link.");
     }
+  };
+
+  const sendWhatsapp = (d: { access_token: string; name: string; recipient_name: string; recipient_phone: string | null; deadline: string | null }) => {
+    if (!d.recipient_phone) {
+      toast.error("Este documento não tem WhatsApp cadastrado.");
+      return;
+    }
+    const link = `${window.location.origin}/sign/${d.access_token}`;
+    const msg = whatsappMessage({
+      senderName: user?.user_metadata?.full_name || user?.email,
+      recipientName: d.recipient_name,
+      documentName: d.name,
+      link,
+      deadline: d.deadline,
+    });
+    window.open(buildWhatsappUrl(d.recipient_phone, msg), "_blank");
   };
 
   const cancelDoc = async (id: string) => {
@@ -174,7 +193,9 @@ function DocumentsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-foreground">{d.recipient_name || "—"}</p>
-                      <p className="text-xs text-muted-foreground">{d.recipient_email || "—"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.recipient_phone || d.recipient_email || "—"}
+                      </p>
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={d.status as DocStatus} />
@@ -182,24 +203,38 @@ function DocumentsPage() {
                     <td className="px-6 py-4 text-muted-foreground">{formatDateTime(d.created_at)}</td>
                     <td className="px-6 py-4 text-muted-foreground">{formatDateTime(d.signed_at)}</td>
                     <td className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="size-4" />
+                      <div className="flex items-center justify-end gap-1">
+                        {d.recipient_phone && d.status !== "assinado" && d.status !== "recusado" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => sendWhatsapp(d)}
+                            className="text-[#25D366] hover:bg-[#25D366]/10 hover:text-[#20b858]"
+                          >
+                            <MessageCircle className="mr-1 size-4" /> WhatsApp
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to="/documents/$id" params={{ id: d.id }}>
-                              Visualizar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
-                            <Copy className="mr-2 size-3.5" /> Copiar link
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
-                            <Send className="mr-2 size-3.5" /> Reenviar link
-                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to="/documents/$id" params={{ id: d.id }}>
+                                Visualizar
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => sendWhatsapp(d)} disabled={!d.recipient_phone}>
+                              <MessageCircle className="mr-2 size-3.5" /> Enviar via WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
+                              <Copy className="mr-2 size-3.5" /> Copiar link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
+                              <Send className="mr-2 size-3.5" /> Reenviar link
+                            </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => downloadFile(d.signed_file_path ?? d.file_path)}>
                             <Download className="mr-2 size-3.5" /> Baixar PDF
                           </DropdownMenuItem>
@@ -210,8 +245,9 @@ function DocumentsPage() {
                           <DropdownMenuItem className="text-destructive" onClick={() => deleteDoc(d.id)}>
                             <Trash2 className="mr-2 size-3.5" /> Excluir
                           </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </td>
                   </tr>
                 ))}

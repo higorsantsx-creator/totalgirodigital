@@ -541,12 +541,14 @@ export type Database = {
           message: string | null
           name: string
           owner_id: string
-          recipient_email: string
+          recipient_email: string | null
           recipient_name: string
+          recipient_phone: string | null
           signature_path: string | null
           signed_at: string | null
           signed_file_path: string | null
           signer_ip: string | null
+          signer_typed_name: string | null
           signer_user_agent: string | null
           signing_mode: Database["public"]["Enums"]["signing_mode"]
           status: Database["public"]["Enums"]["doc_status"]
@@ -572,12 +574,14 @@ export type Database = {
           message?: string | null
           name: string
           owner_id: string
-          recipient_email: string
+          recipient_email?: string | null
           recipient_name: string
+          recipient_phone?: string | null
           signature_path?: string | null
           signed_at?: string | null
           signed_file_path?: string | null
           signer_ip?: string | null
+          signer_typed_name?: string | null
           signer_user_agent?: string | null
           signing_mode?: Database["public"]["Enums"]["signing_mode"]
           status?: Database["public"]["Enums"]["doc_status"]
@@ -603,12 +607,14 @@ export type Database = {
           message?: string | null
           name?: string
           owner_id?: string
-          recipient_email?: string
+          recipient_email?: string | null
           recipient_name?: string
+          recipient_phone?: string | null
           signature_path?: string | null
           signed_at?: string | null
           signed_file_path?: string | null
           signer_ip?: string | null
+          signer_typed_name?: string | null
           signer_user_agent?: string | null
           signing_mode?: Database["public"]["Enums"]["signing_mode"]
           status?: Database["public"]["Enums"]["doc_status"]

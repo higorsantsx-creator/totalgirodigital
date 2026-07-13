@@ -4,7 +4,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
   server: {
     handlers: {
       POST: async ({ params, request }) => {
-        const body = (await request.json()) as { signature_data_url?: string; action?: "sign" | "decline"; reason?: string };
+        const body = (await request.json()) as { signature_data_url?: string; action?: "sign" | "decline"; reason?: string; signer_name?: string };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const { data: doc, error } = await supabaseAdmin
@@ -67,6 +67,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             signer_ip: ip,
             signer_user_agent: ua,
             signature_path: sigPath,
+            signer_typed_name: body.signer_name ?? null,
           })
           .eq("id", doc.id);
         await supabaseAdmin.from("document_history").insert({
@@ -74,6 +75,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           action: "assinado",
           ip,
           user_agent: ua,
+          metadata: body.signer_name ? { signer_name: body.signer_name } : null,
         });
 
         return Response.json({ ok: true });
