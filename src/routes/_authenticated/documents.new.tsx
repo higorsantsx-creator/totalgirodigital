@@ -64,14 +64,14 @@ function NewDocumentPage() {
     }
 
     // insert document
-    logDiagnostic("documents.new.insert.start", { path, recipientEmail });
+    logDiagnostic("documents.new.insert.start", { path });
     const { data: doc, error: insErr } = await supabase
       .from("documents")
       .insert({
         owner_id: user.id,
         name,
         recipient_name: recipientName,
-        recipient_email: recipientEmail,
+        recipient_email: null,
         message: message || null,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         file_path: path,
@@ -89,7 +89,7 @@ function NewDocumentPage() {
     // history
     const { error: historyError } = await supabase.from("document_history").insert([
       { document_id: doc.id, action: "criado", actor: user.email },
-      { document_id: doc.id, action: "enviado", actor: user.email, metadata: { to: recipientEmail } },
+      { document_id: doc.id, action: "link_gerado", actor: user.email },
     ]);
     if (historyError) {
       logDiagnostic("documents.new.history.error", { documentId: doc.id }, historyError);
