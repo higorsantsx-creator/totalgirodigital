@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,11 +17,7 @@ export const Route = createFileRoute("/auth")({
   validateSearch: search,
   beforeLoad: async () => {
     const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      // Already signed in
-      const { throw: _t } = await import("@tanstack/react-router").then((m) => ({ throw: m.redirect }));
-      throw _t({ to: "/dashboard" });
-    }
+    if (data.session) throw redirect({ to: "/dashboard" });
   },
   component: AuthPage,
 });
