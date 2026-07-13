@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 const search = z.object({ redirect: z.string().optional() });
 
