@@ -56,12 +56,13 @@ function SignPage() {
   }, [token]);
 
   const submit = async () => {
+    if (!typedName.trim()) return toast.error("Digite seu nome completo");
     if (!signature) return toast.error("Desenhe sua assinatura primeiro");
     setSubmitting(true);
     const res = await fetch(`/api/public/sign/${token}/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sign", signature_data_url: signature }),
+      body: JSON.stringify({ action: "sign", signature_data_url: signature, signer_name: typedName.trim() }),
     });
     setSubmitting(false);
     if (!res.ok) {
