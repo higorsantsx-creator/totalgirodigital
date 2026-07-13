@@ -1,4 +1,5 @@
 import { createFileRoute, isRedirect, Outlet, redirect, useRouter } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppSidebar } from "@/components/app-sidebar";
 import { logDiagnostic } from "@/lib/debug-diagnostics";
