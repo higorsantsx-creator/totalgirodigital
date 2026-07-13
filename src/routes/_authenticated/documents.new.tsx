@@ -23,7 +23,7 @@ function NewDocumentPage() {
   const [dragOver, setDragOver] = useState(false);
   const [name, setName] = useState("");
   const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
+  
   const [message, setMessage] = useState("");
   const [deadline, setDeadline] = useState("");
   const [loading, setLoading] = useState(false);
