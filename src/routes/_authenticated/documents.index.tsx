@@ -21,8 +21,10 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Plus, Search, MoreHorizontal, Copy, Download, XOctagon, Trash2, Send } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Copy, Download, XOctagon, Trash2, Send, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildWhatsappUrl, whatsappMessage } from "@/lib/whatsapp";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/_authenticated/documents/")({
   component: DocumentsPage,
