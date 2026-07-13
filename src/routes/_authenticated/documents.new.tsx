@@ -149,7 +149,7 @@ function NewDocumentPage() {
                   setFile(null);
                   setName("");
                   setRecipientName("");
-                  setRecipientEmail("");
+                  
                   setMessage("");
                   setDeadline("");
                 }}
