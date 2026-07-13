@@ -23,7 +23,7 @@ function NewDocumentPage() {
   const [dragOver, setDragOver] = useState(false);
   const [name, setName] = useState("");
   const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
+  
   const [message, setMessage] = useState("");
   const [deadline, setDeadline] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,14 +64,14 @@ function NewDocumentPage() {
     }
 
     // insert document
-    logDiagnostic("documents.new.insert.start", { path, recipientEmail });
+    logDiagnostic("documents.new.insert.start", { path });
     const { data: doc, error: insErr } = await supabase
       .from("documents")
       .insert({
         owner_id: user.id,
         name,
         recipient_name: recipientName,
-        recipient_email: recipientEmail,
+        recipient_email: "",
         message: message || null,
         deadline: deadline ? new Date(deadline).toISOString() : null,
         file_path: path,
@@ -89,7 +89,7 @@ function NewDocumentPage() {
     // history
     const { error: historyError } = await supabase.from("document_history").insert([
       { document_id: doc.id, action: "criado", actor: user.email },
-      { document_id: doc.id, action: "enviado", actor: user.email, metadata: { to: recipientEmail } },
+      { document_id: doc.id, action: "enviado", actor: user.email },
     ]);
     if (historyError) {
       logDiagnostic("documents.new.history.error", { documentId: doc.id }, historyError);
@@ -149,7 +149,7 @@ function NewDocumentPage() {
                   setFile(null);
                   setName("");
                   setRecipientName("");
-                  setRecipientEmail("");
+                  
                   setMessage("");
                   setDeadline("");
                 }}
@@ -213,15 +213,9 @@ function NewDocumentPage() {
                 <Label htmlFor="name">Nome do documento</Label>
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Contrato de Serviços" />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="rname">Nome do destinatário</Label>
-                  <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="remail">E-mail do destinatário</Label>
-                  <Input id="remail" type="email" required value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)} />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="rname">Nome do destinatário</Label>
+                <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="msg">Mensagem personalizada (opcional)</Label>
