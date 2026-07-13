@@ -201,20 +201,24 @@ function SignPage() {
             <>
               <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                 <h3 className="font-display font-bold text-lg">Finalizar Assinatura</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Desenhe sua assinatura abaixo para confirmar.</p>
-                {doc.message && (
-                  <div className="mt-4 rounded-lg border border-border bg-secondary/40 p-3 text-sm">
-                    <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      Mensagem do remetente
-                    </p>
-                    {doc.message}
-                  </div>
-                )}
-                <div className="mt-4">
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Preencha seu nome e desenhe sua assinatura para confirmar.
+                </p>
+                <div className="mt-4 space-y-1.5">
+                  <Label htmlFor="signer-name">Seu nome completo</Label>
+                  <Input
+                    id="signer-name"
+                    value={typedName}
+                    onChange={(e) => setTypedName(e.target.value)}
+                    placeholder="Digite seu nome"
+                  />
+                </div>
+                <div className="mt-4 space-y-1.5">
+                  <Label>Sua assinatura</Label>
                   <SignaturePad onChange={setSignature} />
                 </div>
                 <div className="mt-4 flex gap-2">
-                  <Button onClick={submit} disabled={submitting || !signature} className="flex-1">
+                  <Button onClick={submit} disabled={submitting || !signature || !typedName.trim()} className="flex-1">
                     {submitting && <Loader2 className="mr-2 size-4 animate-spin" />} Confirmar
                   </Button>
                   <Button variant="outline" onClick={decline} disabled={submitting}>
