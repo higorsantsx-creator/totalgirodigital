@@ -67,6 +67,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             signer_ip: ip,
             signer_user_agent: ua,
             signature_path: sigPath,
+            signer_typed_name: body.signer_name ?? null,
           })
           .eq("id", doc.id);
         await supabaseAdmin.from("document_history").insert({
@@ -74,6 +75,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           action: "assinado",
           ip,
           user_agent: ua,
+          metadata: body.signer_name ? { signer_name: body.signer_name } : null,
         });
 
         return Response.json({ ok: true });
