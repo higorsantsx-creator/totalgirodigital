@@ -8,13 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { UploadCloud, Loader2, FileText, X, Copy, Check } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { logDiagnostic } from "@/lib/debug-diagnostics";
 
 export const Route = createFileRoute("/_authenticated/documents/new")({
   component: NewDocumentPage,
 });
 
 function NewDocumentPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -43,21 +44,26 @@ function NewDocumentPage() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !user) return;
+    if (!file) return toast.error("Selecione um PDF antes de enviar.");
+    if (authLoading) return toast.error("A sessão ainda está carregando.");
+    if (!user) return toast.error("Faça login novamente para enviar documentos.");
     setLoading(true);
 
     // upload PDF
     const path = `${user.id}/${crypto.randomUUID()}/${file.name}`;
+    logDiagnostic("documents.new.upload.start", { path, size: file.size, type: file.type });
     const { error: upErr } = await supabase.storage.from("documents").upload(path, file, {
       contentType: "application/pdf",
       upsert: false,
     });
     if (upErr) {
       setLoading(false);
+      logDiagnostic("documents.new.upload.error", { path }, upErr);
       return toast.error(upErr.message);
     }
 
     // insert document
+    logDiagnostic("documents.new.insert.start", { path, recipientEmail });
     const { data: doc, error: insErr } = await supabase
       .from("documents")
       .insert({
@@ -75,14 +81,18 @@ function NewDocumentPage() {
 
     if (insErr || !doc) {
       setLoading(false);
+      logDiagnostic("documents.new.insert.error", { path }, insErr ?? new Error("Insert returned no document"));
       return toast.error(insErr?.message ?? "Erro ao criar documento");
     }
 
     // history
-    await supabase.from("document_history").insert([
+    const { error: historyError } = await supabase.from("document_history").insert([
       { document_id: doc.id, action: "criado", actor: user.email },
       { document_id: doc.id, action: "enviado", actor: user.email, metadata: { to: recipientEmail } },
     ]);
+    if (historyError) {
+      logDiagnostic("documents.new.history.error", { documentId: doc.id }, historyError);
+    }
 
     setLoading(false);
     const link = `${window.location.origin}/sign/${doc.access_token}`;
@@ -92,9 +102,14 @@ function NewDocumentPage() {
 
   const copyLink = async () => {
     if (!createdLink) return;
-    await navigator.clipboard.writeText(createdLink);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    try {
+      await navigator.clipboard.writeText(createdLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (error) {
+      logDiagnostic("documents.new.copy-link.error", {}, error);
+      toast.error("Não foi possível copiar o link.");
+    }
   };
 
   return (
@@ -217,7 +232,7 @@ function NewDocumentPage() {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading || !file} className="w-full">
+            <Button type="submit" disabled={loading || authLoading || !file} className="w-full">
               {loading && <Loader2 className="mr-2 size-4 animate-spin" />} Enviar para assinatura
             </Button>
           </form>

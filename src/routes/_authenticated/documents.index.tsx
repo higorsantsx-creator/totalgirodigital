@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import { formatDateTime } from "@/lib/format";
+import { logDiagnostic } from "@/lib/debug-diagnostics";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,30 +36,42 @@ function DocumentsPage() {
   const { data: docs, isLoading } = useQuery({
     queryKey: ["documents", { q, statusFilter }],
     queryFn: async () => {
+      logDiagnostic("documents.list.query.start", { q, statusFilter });
       let query = supabase
         .from("documents")
         .select("*")
         .order("created_at", { ascending: false });
       if (statusFilter !== "all") query = query.eq("status", statusFilter);
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        logDiagnostic("documents.list.query.error", { q, statusFilter }, error);
+        throw error;
+      }
       const filtered = (data ?? []).filter((d) => {
         if (!q) return true;
         const s = q.toLowerCase();
         return (
-          d.name.toLowerCase().includes(s) ||
-          d.recipient_name.toLowerCase().includes(s) ||
-          d.recipient_email.toLowerCase().includes(s)
+          (d.name ?? "").toLowerCase().includes(s) ||
+          (d.recipient_name ?? "").toLowerCase().includes(s) ||
+          (d.recipient_email ?? "").toLowerCase().includes(s)
         );
       });
+      logDiagnostic("documents.list.query.success", { total: data?.length ?? 0, filtered: filtered.length });
       return filtered;
     },
   });
 
+  const documents = docs ?? [];
+
   const copyLink = async (token: string) => {
     const url = `${window.location.origin}/sign/${token}`;
-    await navigator.clipboard.writeText(url);
-    toast.success("Link copiado");
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copiado");
+    } catch (error) {
+      logDiagnostic("documents.copy-link.error", {}, error);
+      toast.error("Não foi possível copiar o link.");
+    }
   };
 
   const cancelDoc = async (id: string) => {
@@ -66,7 +79,10 @@ function DocumentsPage() {
       .from("documents")
       .update({ status: "expirado", cancelled_at: new Date().toISOString() })
       .eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      logDiagnostic("documents.cancel.error", { id }, error);
+      return toast.error(error.message);
+    }
     await supabase.from("document_history").insert({ document_id: id, action: "cancelado" });
     toast.success("Documento cancelado");
     qc.invalidateQueries({ queryKey: ["documents"] });
@@ -76,7 +92,10 @@ function DocumentsPage() {
   const deleteDoc = async (id: string) => {
     if (!confirm("Excluir este documento permanentemente?")) return;
     const { error } = await supabase.from("documents").delete().eq("id", id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      logDiagnostic("documents.delete.error", { id }, error);
+      return toast.error(error.message);
+    }
     toast.success("Documento excluído");
     qc.invalidateQueries({ queryKey: ["documents"] });
     qc.invalidateQueries({ queryKey: ["documents-all"] });
@@ -84,7 +103,10 @@ function DocumentsPage() {
 
   const downloadFile = async (path: string) => {
     const { data, error } = await supabase.storage.from("documents").createSignedUrl(path, 60);
-    if (error || !data) return toast.error("Falha ao gerar link");
+    if (error || !data) {
+      logDiagnostic("documents.download-url.error", { path }, error ?? new Error("Missing signed URL"));
+      return toast.error("Falha ao gerar link");
+    }
     window.open(data.signedUrl, "_blank");
   };
 
@@ -145,14 +167,14 @@ function DocumentsPage() {
                 </tr>
               )}
               {!isLoading &&
-                (docs ?? []).map((d) => (
+                documents.map((d) => (
                   <tr key={d.id} className="transition-colors hover:bg-secondary/40">
                     <td className="px-6 py-4">
-                      <p className="font-medium text-foreground">{d.name}</p>
+                      <p className="font-medium text-foreground">{d.name || "Documento sem nome"}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-foreground">{d.recipient_name}</p>
-                      <p className="text-xs text-muted-foreground">{d.recipient_email}</p>
+                      <p className="text-foreground">{d.recipient_name || "—"}</p>
+                      <p className="text-xs text-muted-foreground">{d.recipient_email || "—"}</p>
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={d.status as DocStatus} />
@@ -172,10 +194,10 @@ function DocumentsPage() {
                               Visualizar
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(d.access_token)}>
+                          <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
                             <Copy className="mr-2 size-3.5" /> Copiar link
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(d.access_token)}>
+                          <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
                             <Send className="mr-2 size-3.5" /> Reenviar link
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => downloadFile(d.signed_file_path ?? d.file_path)}>
@@ -193,7 +215,7 @@ function DocumentsPage() {
                     </td>
                   </tr>
                 ))}
-              {!isLoading && docs && docs.length === 0 && (
+              {!isLoading && docs && documents.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center text-sm text-muted-foreground">
                     Nenhum documento encontrado.
