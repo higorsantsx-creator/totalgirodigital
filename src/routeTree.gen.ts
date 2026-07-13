@@ -18,6 +18,7 @@ import { Route as SignTokenRouteImport } from './routes/sign.$token'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
@@ -68,6 +69,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/oauth-callback': typeof OauthCallbackRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/oauth-callback': typeof OauthCallbackRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/oauth-callback': typeof OauthCallbackRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/oauth-callback'
     | '/reset-password'
+    | '/clients'
     | '/dashboard'
     | '/history'
     | '/settings'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/oauth-callback'
     | '/reset-password'
+    | '/clients'
     | '/dashboard'
     | '/history'
     | '/settings'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/oauth-callback'
     | '/reset-password'
+    | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/history'
     | '/_authenticated/settings'
@@ -269,6 +281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clients': {
+      id: '/_authenticated/clients'
+      path: '/clients'
+      fullPath: '/clients'
+      preLoaderRoute: typeof AuthenticatedClientsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/documents/': {
       id: '/_authenticated/documents/'
       path: '/documents'
@@ -308,6 +327,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -317,6 +337,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
