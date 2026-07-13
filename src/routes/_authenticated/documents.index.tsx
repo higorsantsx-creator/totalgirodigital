@@ -32,6 +32,7 @@ export const Route = createFileRoute("/_authenticated/documents/")({
 
 function DocumentsPage() {
   const qc = useQueryClient();
+  const { user } = useAuth();
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState<DocStatus | "all">("all");
 
