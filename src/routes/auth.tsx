@@ -99,6 +99,8 @@ function AuthPage() {
     afterAuth();
   };
 
+  if (!hydrated) return null;
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary/40 p-6">
       <div className="w-full max-w-md space-y-6">
