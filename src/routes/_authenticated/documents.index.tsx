@@ -245,8 +245,9 @@ function DocumentsPage() {
                           <DropdownMenuItem className="text-destructive" onClick={() => deleteDoc(d.id)}>
                             <Trash2 className="mr-2 size-3.5" /> Excluir
                           </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </td>
                   </tr>
                 ))}
