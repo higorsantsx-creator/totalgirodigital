@@ -77,6 +77,22 @@ function DocumentsPage() {
     }
   };
 
+  const sendWhatsapp = (d: { access_token: string; name: string; recipient_name: string; recipient_phone: string | null; deadline: string | null }) => {
+    if (!d.recipient_phone) {
+      toast.error("Este documento não tem WhatsApp cadastrado.");
+      return;
+    }
+    const link = `${window.location.origin}/sign/${d.access_token}`;
+    const msg = whatsappMessage({
+      senderName: user?.user_metadata?.full_name || user?.email,
+      recipientName: d.recipient_name,
+      documentName: d.name,
+      link,
+      deadline: d.deadline,
+    });
+    window.open(buildWhatsappUrl(d.recipient_phone, msg), "_blank");
+  };
+
   const cancelDoc = async (id: string) => {
     const { error } = await supabase
       .from("documents")
