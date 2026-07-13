@@ -193,7 +193,9 @@ function DocumentsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <p className="text-foreground">{d.recipient_name || "—"}</p>
-                      <p className="text-xs text-muted-foreground">{d.recipient_email || "—"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.recipient_phone || d.recipient_email || "—"}
+                      </p>
                     </td>
                     <td className="px-6 py-4">
                       <StatusBadge status={d.status as DocStatus} />
@@ -201,24 +203,38 @@ function DocumentsPage() {
                     <td className="px-6 py-4 text-muted-foreground">{formatDateTime(d.created_at)}</td>
                     <td className="px-6 py-4 text-muted-foreground">{formatDateTime(d.signed_at)}</td>
                     <td className="px-6 py-4 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="size-4" />
+                      <div className="flex items-center justify-end gap-1">
+                        {d.recipient_phone && d.status !== "assinado" && d.status !== "recusado" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => sendWhatsapp(d)}
+                            className="text-[#25D366] hover:bg-[#25D366]/10 hover:text-[#20b858]"
+                          >
+                            <MessageCircle className="mr-1 size-4" /> WhatsApp
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to="/documents/$id" params={{ id: d.id }}>
-                              Visualizar
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
-                            <Copy className="mr-2 size-3.5" /> Copiar link
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
-                            <Send className="mr-2 size-3.5" /> Reenviar link
-                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem asChild>
+                              <Link to="/documents/$id" params={{ id: d.id }}>
+                                Visualizar
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => sendWhatsapp(d)} disabled={!d.recipient_phone}>
+                              <MessageCircle className="mr-2 size-3.5" /> Enviar via WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
+                              <Copy className="mr-2 size-3.5" /> Copiar link
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => copyLink(d.access_token)} disabled={!d.access_token}>
+                              <Send className="mr-2 size-3.5" /> Reenviar link
+                            </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => downloadFile(d.signed_file_path ?? d.file_path)}>
                             <Download className="mr-2 size-3.5" /> Baixar PDF
                           </DropdownMenuItem>
