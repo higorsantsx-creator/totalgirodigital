@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "sonner";
 import { UploadCloud, Loader2, FileText, X, Copy, Check, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -41,8 +34,9 @@ function NewDocumentPage() {
   const [created, setCreated] = useState<{ link: string; phone: string; docName: string; deadline: string | null } | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const { data: clients } = useQuery({
-    queryKey: ["clients"],
+  const { data: clients, isLoading: clientsLoading, error: clientsError } = useQuery({
+    queryKey: ["clients", user?.id],
+    enabled: !authLoading && Boolean(user),
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
@@ -287,20 +281,25 @@ function NewDocumentPage() {
                     Gerenciar clientes
                   </Link>
                 </div>
-                <Select value={clientId} onValueChange={onClientChange}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">+ Novo destinatário</SelectItem>
-                    {clients?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                        {c.phone ? ` — ${c.phone}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <select
+                  value={clientId}
+                  onChange={(e) => onClientChange(e.target.value)}
+                  disabled={authLoading || clientsLoading}
+                  className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition-colors focus:border-ring focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="new">+ Novo destinatário</option>
+                  {(clients ?? []).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}{c.phone ? ` — ${c.phone}` : ""}
+                    </option>
+                  ))}
+                </select>
+                {clientsLoading && (
+                  <p className="text-xs text-muted-foreground">Carregando clientes...</p>
+                )}
+                {clientsError && (
+                  <p className="text-xs text-destructive">Não foi possível carregar os clientes. Tente novamente.</p>
+                )}
               </div>
 
               {clientId !== "new" && recipientName ? (
