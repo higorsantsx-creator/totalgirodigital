@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDateTime } from "@/lib/format";
+import { logDiagnostic } from "@/lib/debug-diagnostics";
 import { Clock, Eye, PenLine, XCircle, TimerOff, FilePlus, Send } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/history")({
@@ -12,15 +13,22 @@ function HistoryPage() {
   const { data } = useQuery({
     queryKey: ["global-history"],
     queryFn: async () => {
+      logDiagnostic("history.query.start");
       const { data, error } = await supabase
         .from("document_history")
         .select("*, documents!inner(id, name)")
         .order("created_at", { ascending: false })
         .limit(200);
-      if (error) throw error;
+      if (error) {
+        logDiagnostic("history.query.error", {}, error);
+        throw error;
+      }
+      logDiagnostic("history.query.success", { count: data?.length ?? 0 });
       return data ?? [];
     },
   });
+
+  const history = data ?? [];
 
   return (
     <>
@@ -30,8 +38,9 @@ function HistoryPage() {
       <div className="mx-auto max-w-4xl p-8">
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <ol className="space-y-4">
-            {(data ?? []).map((h) => {
-              const doc = (h as unknown as { documents: { id: string; name: string } }).documents;
+            {history.map((h) => {
+              const relation = (h as unknown as { documents?: { id?: string; name?: string } | { id?: string; name?: string }[] }).documents;
+              const doc = Array.isArray(relation) ? relation[0] : relation;
               return (
                 <li key={h.id} className="flex gap-3 border-b border-border pb-3 last:border-0">
                   <ActionIcon action={h.action} />
@@ -39,9 +48,13 @@ function HistoryPage() {
                     <p className="text-sm">
                       <span className="font-semibold capitalize">{h.action}</span>
                       {" · "}
-                      <Link to="/documents/$id" params={{ id: doc.id }} className="text-accent hover:underline">
-                        {doc.name}
-                      </Link>
+                      {doc?.id ? (
+                        <Link to="/documents/$id" params={{ id: doc.id }} className="text-accent hover:underline">
+                          {doc.name || "Documento sem nome"}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">Documento indisponível</span>
+                      )}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {formatDateTime(h.created_at)} {h.actor && `· ${h.actor}`}
@@ -50,7 +63,7 @@ function HistoryPage() {
                 </li>
               );
             })}
-            {data && data.length === 0 && (
+            {data && history.length === 0 && (
               <li className="py-8 text-center text-sm text-muted-foreground">Sem eventos ainda.</li>
             )}
           </ol>

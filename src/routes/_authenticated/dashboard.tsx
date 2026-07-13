@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import { relativeDate } from "@/lib/format";
+import { logDiagnostic } from "@/lib/debug-diagnostics";
 import { Plus, FileText, Clock, CheckCircle2, XCircle, TimerOff, TrendingUp } from "lucide-react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from "recharts";
 
@@ -15,20 +16,27 @@ function DashboardPage() {
   const { data: docs } = useQuery({
     queryKey: ["documents-all"],
     queryFn: async () => {
+      logDiagnostic("dashboard.documents.query.start");
       const { data, error } = await supabase
         .from("documents")
         .select("id, name, status, recipient_name, created_at, signed_at")
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        logDiagnostic("dashboard.documents.query.error", {}, error);
+        throw error;
+      }
+      logDiagnostic("dashboard.documents.query.success", { count: data?.length ?? 0 });
       return data ?? [];
     },
   });
 
-  const total = docs?.length ?? 0;
-  const pendentes = docs?.filter((d) => d.status === "pendente" || d.status === "visualizado").length ?? 0;
-  const assinados = docs?.filter((d) => d.status === "assinado").length ?? 0;
-  const recusados = docs?.filter((d) => d.status === "recusado").length ?? 0;
-  const expirados = docs?.filter((d) => d.status === "expirado").length ?? 0;
+  const documents = docs ?? [];
+
+  const total = documents.length;
+  const pendentes = documents.filter((d) => d.status === "pendente" || d.status === "visualizado").length;
+  const assinados = documents.filter((d) => d.status === "assinado").length;
+  const recusados = documents.filter((d) => d.status === "recusado").length;
+  const expirados = documents.filter((d) => d.status === "expirado").length;
 
   // last 7 days chart
   const chartData = Array.from({ length: 7 }).map((_, i) => {
@@ -36,7 +44,7 @@ function DashboardPage() {
     d.setDate(d.getDate() - (6 - i));
     const day = d.toISOString().slice(0, 10);
     const label = d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
-    const count = docs?.filter((doc) => doc.created_at.slice(0, 10) === day).length ?? 0;
+    const count = documents.filter((doc) => (doc.created_at ?? "").slice(0, 10) === day).length;
     return { day: label, count };
   });
 
@@ -117,11 +125,11 @@ function DashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border text-sm">
-              {(docs ?? []).slice(0, 5).map((d) => (
+              {documents.slice(0, 5).map((d) => (
                 <tr key={d.id} className="transition-colors hover:bg-secondary/40">
                   <td className="px-6 py-4">
-                    <p className="font-medium text-foreground">{d.name}</p>
-                    <p className="text-xs text-muted-foreground">Para: {d.recipient_name}</p>
+                    <p className="font-medium text-foreground">{d.name || "Documento sem nome"}</p>
+                    <p className="text-xs text-muted-foreground">Para: {d.recipient_name || "—"}</p>
                   </td>
                   <td className="px-6 py-4">
                     <StatusBadge status={d.status as DocStatus} />
@@ -134,7 +142,7 @@ function DashboardPage() {
                   </td>
                 </tr>
               ))}
-              {docs && docs.length === 0 && (
+              {docs && documents.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-16 text-center text-sm text-muted-foreground">
                     Nenhum documento ainda.{" "}
