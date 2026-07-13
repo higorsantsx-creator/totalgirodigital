@@ -303,22 +303,30 @@ function NewDocumentPage() {
                 </Select>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="rname">Nome do destinatário</Label>
-                  <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Nome completo" />
+              {clientId !== "new" && recipientName ? (
+                <div className="rounded-lg border border-border bg-secondary/40 p-3 text-sm">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Destinatário</p>
+                  <p className="mt-0.5 font-medium">{recipientName}</p>
+                  <p className="text-xs text-muted-foreground">{recipientPhone || "sem WhatsApp cadastrado"}</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rphone">WhatsApp</Label>
-                  <Input
-                    id="rphone"
-                    required
-                    value={recipientPhone}
-                    onChange={(e) => setRecipientPhone(e.target.value)}
-                    placeholder="(11) 99999-9999"
-                  />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="rname">Nome do destinatário</Label>
+                    <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Nome completo" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rphone">WhatsApp</Label>
+                    <Input
+                      id="rphone"
+                      required
+                      value={recipientPhone}
+                      onChange={(e) => setRecipientPhone(e.target.value)}
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="msg">Mensagem personalizada (opcional)</Label>
