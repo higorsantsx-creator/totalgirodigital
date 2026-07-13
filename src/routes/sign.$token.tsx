@@ -37,6 +37,7 @@ function SignPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signature, setSignature] = useState<string | null>(null);
+  const [typedName, setTypedName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
 
