@@ -443,8 +443,8 @@ function NewDocumentPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="msg">Mensagem personalizada (opcional)</Label>
-                <Textarea id="msg" value={message} onChange={(e) => setMessage(e.target.value)} rows={3} />
+                <Label htmlFor="msg">Competência (ex: Outubro/2026)</Label>
+                <Input id="msg" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Outubro/2026" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="deadline">Data limite (opcional)</Label>
