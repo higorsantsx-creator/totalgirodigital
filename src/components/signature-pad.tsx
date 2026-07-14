@@ -90,9 +90,9 @@ export function SignaturePad({ onChange, height = 200 }: SignaturePadProps) {
           onPointerUp={end}
           onPointerLeave={end}
         />
-        <div className="pointer-events-none absolute inset-x-8 bottom-8 h-0.5 rounded-full bg-foreground/25" />
+        <div className="pointer-events-none absolute inset-x-8 top-1/2 h-0.5 -translate-y-1/2 rounded-full bg-foreground/25" />
         {!hasStroke && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-10 flex justify-center">
+          <div className="pointer-events-none absolute inset-x-0 top-1/2 mt-2 flex justify-center">
             <span className="text-[11px] uppercase tracking-widest text-muted-foreground/70">
               Assine sobre a linha
             </span>
