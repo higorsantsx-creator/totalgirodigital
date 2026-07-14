@@ -358,10 +358,8 @@ function NewDocumentPage() {
                                 )}
                               </span>
                             </span>
-                          ) : clientId === "new" ? (
-                            <span className="text-muted-foreground">Selecione um destinatário</span>
                           ) : (
-                            <span className="text-muted-foreground">Selecione um destinatário</span>
+                            <span className="text-muted-foreground">Selecionar funcionário</span>
                           )}
                           <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
                         </button>
