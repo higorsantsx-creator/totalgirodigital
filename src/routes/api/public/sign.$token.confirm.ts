@@ -59,8 +59,9 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           .upload(sigPath, buf, { contentType: "image/png", upsert: true });
         if (upErr) return Response.json({ error: upErr.message }, { status: 500 });
 
-        // Embed signature into the PDF (stamp on last page) and save as signed copy
+        // Embed signature into the PDF and save as signed copy
         let signedFilePath: string | null = null;
+        let embedError: string | null = null;
         try {
           const { data: pdfBlob, error: dlErr } = await supabaseAdmin.storage
             .from("documents")
@@ -68,13 +69,12 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF");
           const pdfBytes = new Uint8Array(await pdfBlob.arrayBuffer());
           const { PDFDocument, degrees } = await import("pdf-lib");
-          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
           const pngImage = await pdfDoc.embedPng(buf);
           const firstPage = pdfDoc.getPages()[0];
 
           // Fixed signature slots for the Total Giro payslip template (A4 portrait,
-          // 595.32 x 841.92pt). Each holerite has a vertical signature line on the
-          // right side. Coordinates measured from the source PDF.
+          // 595.32 x 841.92pt). Each holerite has a vertical signature line on the right.
           const slots = [
             { xLine: 550.7, yBottom: 638.52, yTop: 779.16 }, // top payslip
             { xLine: 550.7, yBottom: 227.04, yTop: 367.56 }, // bottom payslip
@@ -82,12 +82,10 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
 
           for (const slot of slots) {
             const lineLen = slot.yTop - slot.yBottom;
-            const targetLen = lineLen * 0.9; // signature length along the line
+            const targetLen = lineLen * 0.9;
             const scale = targetLen / pngImage.width;
-            const drawW = pngImage.width * scale; // becomes vertical extent after 90° rotation
-            const drawH = Math.min(pngImage.height * scale, 30); // horizontal extent, capped
-            // Rotating 90° CCW around (x, y): image spans [y, y+drawW] vertically
-            // and [x-drawH, x] horizontally. Center it on the signature line.
+            const drawW = pngImage.width * scale;
+            const drawH = Math.min(pngImage.height * scale, 30);
             const midY = (slot.yBottom + slot.yTop) / 2;
             const anchorX = slot.xLine + drawH / 2;
             const anchorY = midY - drawW / 2;
@@ -108,8 +106,10 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           if (sUpErr) throw sUpErr;
         } catch (e) {
           console.error("[sign] embed signature failed", e);
+          embedError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
           signedFilePath = null;
         }
+
 
         await supabaseAdmin
           .from("documents")
@@ -128,7 +128,11 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           action: "assinado",
           ip,
           user_agent: ua,
-          metadata: body.signer_name ? { signer_name: body.signer_name } : null,
+          metadata: {
+            ...(body.signer_name ? { signer_name: body.signer_name } : {}),
+            ...(embedError ? { embed_error: embedError } : {}),
+            embed_success: signedFilePath !== null,
+          },
         });
 
         return Response.json({ ok: true });
