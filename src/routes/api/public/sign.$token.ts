@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/public/sign/$token")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("id, name, status, recipient_name, message, deadline, file_path, owner_id, viewed_at")
+          .select("id, name, status, recipient_name, message, deadline, file_path, signed_file_path, owner_id, viewed_at")
           .eq("access_token", params.token)
           .maybeSingle();
 
@@ -31,9 +31,10 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           .maybeSingle();
 
         // signed url for pdf (10 min)
+        const displayPath = doc.signed_file_path ?? doc.file_path;
         const { data: urlData } = await supabaseAdmin.storage
           .from("documents")
-          .createSignedUrl(doc.file_path, 60 * 10);
+          .createSignedUrl(displayPath, 60 * 10);
 
         // mark viewed (first time)
         if (!doc.viewed_at && status === "pendente") {
