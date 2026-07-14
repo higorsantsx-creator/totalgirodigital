@@ -54,7 +54,7 @@ export function AppSidebar() {
 
         <nav className="space-y-1">
           {nav.map(({ to, label, icon: Icon }) => {
-            const active = pathname === to || (to !== "/dashboard" && pathname.startsWith(to));
+            const active = to === "/documents" ? pathname === "/documents" : pathname === to || (to !== "/dashboard" && pathname.startsWith(to + "/"));
             return (
               <Link
                 key={to}
