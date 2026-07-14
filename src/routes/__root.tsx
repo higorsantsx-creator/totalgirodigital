@@ -91,8 +91,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Total Giro — Assinaturas Digitais" },
       { name: "twitter:description", content: "Envie documentos e colete assinaturas digitais com rastreamento em tempo real, histórico completo e auditoria." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/77d5e616-156c-445a-91c7-e866cc6633a0" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/77d5e616-156c-445a-91c7-e866cc6633a0" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/77fd7eb6-e4f9-49c4-b11c-42afcb67c31c" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/77fd7eb6-e4f9-49c4-b11c-42afcb67c31c" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
