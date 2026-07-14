@@ -149,10 +149,12 @@ function NewDocumentPage() {
 
     const msg = whatsappMessage({
       senderName: user?.user_metadata?.full_name || user?.email,
+      empresa: user?.user_metadata?.full_name || user?.email,
       recipientName,
       documentName: name,
       link,
       deadline: doc.deadline,
+      competencia: message || null,
     });
     window.open(buildWhatsappUrl(phone, msg), "_blank");
     toast.success("Abrindo WhatsApp com a mensagem pronta...");
@@ -169,10 +171,12 @@ function NewDocumentPage() {
     if (!created) return;
     const msg = whatsappMessage({
       senderName: user?.user_metadata?.full_name || user?.email,
+      empresa: user?.user_metadata?.full_name || user?.email,
       recipientName,
       documentName: created.docName,
       link: created.link,
       deadline: created.deadline,
+      competencia: message || null,
     });
     window.open(buildWhatsappUrl(created.phone, msg), "_blank");
   };
@@ -439,8 +443,8 @@ function NewDocumentPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="msg">Mensagem personalizada (opcional)</Label>
-                <Textarea id="msg" value={message} onChange={(e) => setMessage(e.target.value)} rows={3} />
+                <Label htmlFor="msg">Competência (ex: Outubro/2026)</Label>
+                <Input id="msg" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Outubro/2026" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="deadline">Data limite (opcional)</Label>
