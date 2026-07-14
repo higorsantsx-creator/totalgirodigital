@@ -140,8 +140,18 @@ function NewDocumentPage() {
 
     setLoading(false);
     const link = `${window.location.origin}/sign/${doc.access_token}`;
-    setCreated({ link, phone: recipientPhone.trim(), docName: name, deadline: doc.deadline });
-    toast.success("Documento pronto! Envie via WhatsApp abaixo.");
+    const phone = recipientPhone.trim();
+    setCreated({ link, phone, docName: name, deadline: doc.deadline });
+
+    const msg = whatsappMessage({
+      senderName: user?.user_metadata?.full_name || user?.email,
+      recipientName,
+      documentName: name,
+      link,
+      deadline: doc.deadline,
+    });
+    window.open(buildWhatsappUrl(phone, msg), "_blank");
+    toast.success("Abrindo WhatsApp com a mensagem pronta...");
   };
 
   const copyLink = async () => {
