@@ -167,15 +167,19 @@ function KpiCard({
   icon: Icon,
   accent,
   pulse,
+  to,
+  search,
 }: {
   label: string;
   value: number;
   icon: ComponentType<{ className?: string }>;
   accent: string;
   pulse?: boolean;
+  to?: string;
+  search?: { status?: string };
 }) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+  const content = (
+    <div className="group relative h-full overflow-hidden rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-accent/40 hover:shadow-md">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
         <Icon className={`size-4 ${accent}`} />
@@ -184,6 +188,19 @@ function KpiCard({
         <p className={`font-display text-3xl font-bold ${accent}`}>{value}</p>
         {pulse && value > 0 && <span className="size-2 animate-pulse rounded-full bg-warning" />}
       </div>
+      {to && (
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-end bg-gradient-to-t from-accent/10 to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-semibold text-accent-foreground shadow-sm">
+            Ver
+          </span>
+        </div>
+      )}
     </div>
+  );
+  if (!to) return content;
+  return (
+    <Link to={to} search={search as never} className="block">
+      {content}
+    </Link>
   );
 }
