@@ -27,6 +27,52 @@ function formatDateTime(value: Date) {
   });
 }
 
+/** Modelo padrão usado quando o usuário não personalizou a mensagem. */
+export const DEFAULT_WHATSAPP_TEMPLATE = [
+  "*Seu contracheque está disponível para assinatura*",
+  "",
+  "Olá, {{nome_funcionario}}!",
+  "",
+  "Seu novo contracheque referente ao período de {{competencia}} já está disponível e aguarda sua assinatura eletrônica.",
+  "",
+  "*Detalhes do documento:*",
+  "",
+  "📄 Documento: {{documento}}",
+  "📅 Competência: {{competencia}}",
+  "🏢 Empresa: {{empresa}}",
+  "👤 Funcionário: {{nome_funcionario}}",
+  "🕒 Disponível desde: {{data_envio}}",
+  "⏳ Prazo para assinatura: {{data_limite}}",
+  "",
+  "Para visualizar e assinar o documento, acesse o link abaixo:",
+  "{{link}}",
+  "",
+  "A assinatura é rápida, segura e pode ser feita pelo computador, tablet ou celular.",
+  "",
+  "Após concluir a assinatura, uma cópia do documento ficará disponível para download e poderá ser enviada automaticamente para o seu e-mail.",
+  "",
+  "⚠️ *Importante:* Este link é pessoal e intransferível. Não compartilhe com outras pessoas. Caso o prazo de assinatura expire, entre em contato com o setor de Recursos Humanos.",
+  "",
+  "Se tiver qualquer dúvida ou encontrar algum problema durante a assinatura, procure o RH da empresa.",
+  "",
+  "Atenciosamente,",
+  "",
+  "{{empresa}}",
+  "Departamento de Recursos Humanos",
+].join("\n");
+
+/** Variáveis suportadas no template. */
+export const WHATSAPP_TEMPLATE_VARIABLES: { key: string; label: string }[] = [
+  { key: "nome_funcionario", label: "Nome do funcionário" },
+  { key: "empresa", label: "Nome da empresa" },
+  { key: "documento", label: "Nome do documento" },
+  { key: "competencia", label: "Competência (ex: Outubro/2026)" },
+  { key: "data_envio", label: "Data/hora de envio" },
+  { key: "data_limite", label: "Prazo de assinatura" },
+  { key: "link", label: "Link de assinatura" },
+  { key: "remetente", label: "Nome do remetente" },
+];
+
 export function whatsappMessage(opts: {
   senderName?: string | null;
   recipientName?: string | null;
@@ -35,6 +81,7 @@ export function whatsappMessage(opts: {
   deadline?: string | null;
   competencia?: string | null;
   empresa?: string | null;
+  template?: string | null;
 }) {
   const empresa = opts.empresa || opts.senderName || "Sua empresa";
   const funcionario = opts.recipientName || "funcionário(a)";
@@ -42,37 +89,20 @@ export function whatsappMessage(opts: {
   const dataEnvio = formatDateTime(new Date());
   const dataLimite = formatDate(opts.deadline) || "sem prazo definido";
 
-  const lines = [
-    "*Seu contracheque está disponível para assinatura*",
-    "",
-    `Olá, ${funcionario}!`,
-    "",
-    `Seu novo contracheque referente ao período de ${competencia} já está disponível e aguarda sua assinatura eletrônica.`,
-    "",
-    "*Detalhes do documento:*",
-    "",
-    `📄 Documento: ${opts.documentName}`,
-    `📅 Competência: ${competencia}`,
-    `🏢 Empresa: ${empresa}`,
-    `👤 Funcionário: ${funcionario}`,
-    `🕒 Disponível desde: ${dataEnvio}`,
-    `⏳ Prazo para assinatura: ${dataLimite}`,
-    "",
-    "Para visualizar e assinar o documento, acesse o link abaixo:",
-    opts.link,
-    "",
-    "A assinatura é rápida, segura e pode ser feita pelo computador, tablet ou celular.",
-    "",
-    "Após concluir a assinatura, uma cópia do documento ficará disponível para download e poderá ser enviada automaticamente para o seu e-mail.",
-    "",
-    "⚠️ *Importante:* Este link é pessoal e intransferível. Não compartilhe com outras pessoas. Caso o prazo de assinatura expire, entre em contato com o setor de Recursos Humanos.",
-    "",
-    "Se tiver qualquer dúvida ou encontrar algum problema durante a assinatura, procure o RH da empresa.",
-    "",
-    "Atenciosamente,",
-    "",
+  const vars: Record<string, string> = {
+    nome_funcionario: funcionario,
     empresa,
-    "Departamento de Recursos Humanos",
-  ];
-  return lines.join("\n");
+    documento: opts.documentName,
+    competencia,
+    data_envio: dataEnvio,
+    data_limite: dataLimite,
+    link: opts.link,
+    remetente: opts.senderName || empresa,
+  };
+
+  const template = (opts.template && opts.template.trim().length > 0
+    ? opts.template
+    : DEFAULT_WHATSAPP_TEMPLATE);
+
+  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key: string) => vars[key] ?? "");
 }
