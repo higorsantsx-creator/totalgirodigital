@@ -295,22 +295,119 @@ function NewDocumentPage() {
                     Gerenciar clientes
                   </Link>
                 </div>
-                <select
-                  value={clientId}
-                  onChange={(e) => onClientChange(e.target.value)}
-                  disabled={authLoading || clientsLoading}
-                  className="flex h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm outline-none transition-colors focus:border-ring focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="new">+ Novo destinatário</option>
-                  {(clients ?? []).map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}{c.phone ? ` — ${c.phone}` : ""}
-                    </option>
-                  ))}
-                </select>
-                {clientsLoading && (
-                  <p className="text-xs text-muted-foreground">Carregando clientes...</p>
-                )}
+                {(() => {
+                  const selected = clients?.find((c) => c.id === clientId);
+                  const filtered = (clients ?? []).filter((c) => {
+                    const q = clientSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    return (
+                      c.name.toLowerCase().includes(q) ||
+                      (c.phone ?? "").toLowerCase().includes(q)
+                    );
+                  });
+                  return (
+                    <Popover open={clientPickerOpen} onOpenChange={setClientPickerOpen}>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          disabled={authLoading || clientsLoading}
+                          className={cn(
+                            "flex h-11 w-full items-center justify-between gap-2 rounded-md border border-input bg-background px-3 text-left text-sm shadow-sm transition-colors hover:border-accent/60 focus:border-ring focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+                          )}
+                        >
+                          {selected ? (
+                            <span className="flex min-w-0 items-center gap-2.5">
+                              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-accent/15 text-[11px] font-bold uppercase text-accent">
+                                {selected.name.slice(0, 2)}
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate font-medium">{selected.name}</span>
+                                {selected.phone && (
+                                  <span className="block truncate text-xs text-muted-foreground">
+                                    {selected.phone}
+                                  </span>
+                                )}
+                              </span>
+                            </span>
+                          ) : clientId === "new" ? (
+                            <span className="text-muted-foreground">Selecione um destinatário</span>
+                          ) : (
+                            <span className="text-muted-foreground">Selecione um destinatário</span>
+                          )}
+                          <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent
+                        align="start"
+                        className="w-[var(--radix-popover-trigger-width)] p-0"
+                      >
+                        <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                          <Search className="size-4 text-muted-foreground" />
+                          <input
+                            autoFocus
+                            value={clientSearch}
+                            onChange={(e) => setClientSearch(e.target.value)}
+                            placeholder="Buscar cliente..."
+                            className="h-7 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                          />
+                        </div>
+                        <div className="max-h-64 overflow-y-auto p-1">
+                          {filtered.length === 0 ? (
+                            <p className="px-3 py-6 text-center text-xs text-muted-foreground">
+                              {clientsLoading ? "Carregando..." : "Nenhum cliente encontrado"}
+                            </p>
+                          ) : (
+                            filtered.map((c) => {
+                              const active = c.id === clientId;
+                              return (
+                                <button
+                                  key={c.id}
+                                  type="button"
+                                  onClick={() => {
+                                    onClientChange(c.id);
+                                    setClientPickerOpen(false);
+                                    setClientSearch("");
+                                  }}
+                                  className={cn(
+                                    "flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-accent/10",
+                                    active && "bg-accent/10",
+                                  )}
+                                >
+                                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-secondary text-[11px] font-bold uppercase text-foreground/70">
+                                    {c.name.slice(0, 2)}
+                                  </span>
+                                  <span className="min-w-0 flex-1">
+                                    <span className="block truncate font-medium">{c.name}</span>
+                                    {c.phone && (
+                                      <span className="block truncate text-xs text-muted-foreground">
+                                        {c.phone}
+                                      </span>
+                                    )}
+                                  </span>
+                                  {active && <Check className="size-4 text-accent" />}
+                                </button>
+                              );
+                            })
+                          )}
+                        </div>
+                        <div className="border-t border-border p-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onClientChange("new");
+                              setClientPickerOpen(false);
+                              setClientSearch("");
+                            }}
+                            className="flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm font-medium text-accent transition-colors hover:bg-accent/10"
+                          >
+                            <UserPlus className="size-4" />
+                            Cadastrar novo destinatário
+                          </button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  );
+                })()}
                 {clientsError && (
                   <p className="text-xs text-destructive">Não foi possível carregar os clientes. Tente novamente.</p>
                 )}
