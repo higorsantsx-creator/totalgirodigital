@@ -37,6 +37,7 @@ function NewDocumentPage() {
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<{ link: string; phone: string; docName: string; deadline: string | null } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [preparingWhatsapp, setPreparingWhatsapp] = useState(false);
 
   const { data: clients, isLoading: clientsLoading, error: clientsError } = useQuery({
     queryKey: ["clients", user?.id],
@@ -161,8 +162,12 @@ function NewDocumentPage() {
       competencia: message || null,
     });
 
-    window.open(buildWhatsappUrl(phone, msg), "_blank");
-    toast.success("Abrindo WhatsApp com a mensagem pronta...");
+    setPreparingWhatsapp(true);
+    setTimeout(() => {
+      window.open(buildWhatsappUrl(phone, msg), "_blank");
+      setPreparingWhatsapp(false);
+      toast.success("Abrindo WhatsApp com a mensagem pronta...");
+    }, 3000);
   };
 
   const copyLink = async () => {
@@ -188,6 +193,20 @@ function NewDocumentPage() {
 
   return (
     <>
+      {preparingWhatsapp && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-10 py-8 shadow-xl">
+            <div className="grid size-14 place-items-center rounded-full bg-success/15 text-success">
+              <MessageCircle className="size-7" />
+            </div>
+            <div className="text-center">
+              <p className="font-display text-lg font-semibold">Preparando WhatsApp...</p>
+              <p className="mt-1 text-sm text-muted-foreground">Você será redirecionado em instantes.</p>
+            </div>
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          </div>
+        </div>
+      )}
       <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border bg-background/80 px-8 backdrop-blur-sm">
         <h1 className="font-display text-lg font-semibold">Novo documento</h1>
       </header>
