@@ -128,7 +128,11 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           action: "assinado",
           ip,
           user_agent: ua,
-          metadata: body.signer_name ? { signer_name: body.signer_name } : null,
+          metadata: {
+            ...(body.signer_name ? { signer_name: body.signer_name } : {}),
+            ...(embedError ? { embed_error: embedError } : {}),
+            embed_success: signedFilePath !== null,
+          },
         });
 
         return Response.json({ ok: true });
