@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, FileSignature, Loader2, ShieldCheck, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
+import logoAsset from "@/assets/total-giro-logo.png.asset.json";
 
 type DocData = {
   id: string;
@@ -24,12 +25,13 @@ export const Route = createFileRoute("/sign/$token")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Assinar Documento — SignFlow" },
+      { title: "Assinar Documento — Total Giro" },
       { name: "robots", content: "noindex" },
     ],
   }),
   component: SignPage,
 });
+
 
 function SignPage() {
   const { token } = Route.useParams();
