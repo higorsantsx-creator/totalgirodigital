@@ -58,7 +58,8 @@ function SignPage() {
   }, [token]);
 
   const submit = async () => {
-    if (!typedName.trim()) return toast.error("Digite seu nome completo");
+    const parts = typedName.trim().split(/\s+/).filter((p) => p.length >= 2);
+    if (parts.length < 2) return toast.error("Digite seu nome completo (nome e sobrenome)");
     if (!signature) return toast.error("Desenhe sua assinatura primeiro");
     setSubmitting(true);
     const res = await fetch(`/api/public/sign/${token}/confirm`, {
