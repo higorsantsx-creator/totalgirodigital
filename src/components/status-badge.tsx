@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-export type DocStatus = "pendente" | "visualizado" | "assinado" | "recusado" | "expirado";
+export type DocStatus = "pendente" | "visualizado" | "assinado" | "recusado" | "cancelado" | "expirado";
 
 const config: Record<DocStatus, { label: string; className: string; dot: string }> = {
   pendente: {
@@ -22,6 +22,11 @@ const config: Record<DocStatus, { label: string; className: string; dot: string 
     label: "Recusado",
     className: "bg-destructive text-destructive-foreground border-destructive",
     dot: "bg-destructive-foreground/80",
+  },
+  cancelado: {
+    label: "Cancelado",
+    className: "bg-muted text-muted-foreground border-border",
+    dot: "bg-muted-foreground/70",
   },
   expirado: {
     label: "Expirado",

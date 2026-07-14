@@ -906,6 +906,7 @@ export type Database = {
         | "assinado"
         | "recusado"
         | "expirado"
+        | "cancelado"
       event_type:
         | "created"
         | "uploaded"
@@ -1090,6 +1091,7 @@ export const Constants = {
         "assinado",
         "recusado",
         "expirado",
+        "cancelado",
       ],
       event_type: [
         "created",
