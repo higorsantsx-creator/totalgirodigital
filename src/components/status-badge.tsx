@@ -25,8 +25,8 @@ const config: Record<DocStatus, { label: string; className: string; dot: string 
   },
   cancelado: {
     label: "Cancelado",
-    className: "bg-muted text-muted-foreground border-border",
-    dot: "bg-muted-foreground/70",
+    className: "bg-foreground/10 text-foreground border-foreground/40 border-dashed line-through",
+    dot: "bg-foreground/60",
   },
   expirado: {
     label: "Expirado",
