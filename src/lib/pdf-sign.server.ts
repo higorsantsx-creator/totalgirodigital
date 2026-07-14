@@ -1,14 +1,18 @@
 // Server-only helper for embedding a PNG signature into a PDF.
-// Isolated in a .server.ts file so the pdf-lib import graph never reaches
-// client / SSR route module scope (top-level pdf-lib in a route file breaks
-// SSR with a tslib __extends interop error).
-import * as PdfLib from "pdf-lib";
+// Load pdf-lib's bundled ESM build lazily: the package entry imports tslib,
+// which breaks in the deployed worker bundle with a __extends interop error.
+type PdfLibModule = typeof import("pdf-lib");
+
+async function loadPdfLib(): Promise<PdfLibModule> {
+  // @ts-expect-error pdf-lib does not publish declarations for its dist ESM subpath.
+  return (await import("pdf-lib/dist/pdf-lib.esm.js")) as PdfLibModule;
+}
 
 export async function embedSignatureIntoPdf(
   pdfBytes: Uint8Array,
   signaturePng: Uint8Array,
 ): Promise<Uint8Array> {
-  const { PDFDocument, degrees } = PdfLib;
+  const { PDFDocument, degrees } = await loadPdfLib();
   const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
   const pngImage = await pdfDoc.embedPng(signaturePng);
   const firstPage = pdfDoc.getPages()[0];
