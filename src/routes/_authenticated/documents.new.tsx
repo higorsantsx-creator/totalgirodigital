@@ -51,18 +51,8 @@ function NewDocumentPage() {
     },
   });
 
-  const { data: profileTpl } = useQuery({
-    queryKey: ["profile-whatsapp-template", user?.id],
-    enabled: !authLoading && Boolean(user),
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("whatsapp_template")
-        .eq("id", user!.id)
-        .maybeSingle();
-      return data?.whatsapp_template ?? null;
-    },
-  });
+
+
 
 
   const onClientChange = (v: string) => {
