@@ -168,7 +168,7 @@ function NewDocumentPage() {
       qc.invalidateQueries({ queryKey: ["documents"] });
       toast.success("Link de assinatura enviado com sucesso!");
       navigate({ to: "/documents" });
-    }, 3000);
+    }, 800);
   };
 
   const copyLink = async () => {
