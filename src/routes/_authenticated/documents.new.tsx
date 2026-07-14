@@ -169,7 +169,9 @@ function NewDocumentPage() {
       link,
       deadline: doc.deadline,
       competencia: message || null,
+      template: profileTpl,
     });
+
     window.open(buildWhatsappUrl(phone, msg), "_blank");
     toast.success("Abrindo WhatsApp com a mensagem pronta...");
   };
