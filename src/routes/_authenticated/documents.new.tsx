@@ -37,6 +37,7 @@ function NewDocumentPage() {
   const [loading, setLoading] = useState(false);
   const [created, setCreated] = useState<{ link: string; phone: string; docName: string; deadline: string | null } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [preparingWhatsapp, setPreparingWhatsapp] = useState(false);
 
   const { data: clients, isLoading: clientsLoading, error: clientsError } = useQuery({
     queryKey: ["clients", user?.id],
