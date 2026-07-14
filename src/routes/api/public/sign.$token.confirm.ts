@@ -107,11 +107,12 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         } catch (e) {
           console.error("[sign] embed signature failed", e);
           const embedError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
-          // Register the failure but DO NOT mark the document as signed.
-          await supabaseAdmin.from("document_history").insert({
-            document_id: doc.id,
-            action: "erro_assinatura",
-            ip,
+          // Register the failure in audit_logs but DO NOT mark the document as signed.
+          await supabaseAdmin.from("audit_logs").insert({
+            action: "sign_pdf_generation_failed",
+            resource_type: "document",
+            resource_id: doc.id,
+            ip_address: ip,
             user_agent: ua,
             metadata: { embed_error: embedError, signature_path: sigPath },
           });
