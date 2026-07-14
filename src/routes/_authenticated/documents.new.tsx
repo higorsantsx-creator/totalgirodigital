@@ -162,8 +162,12 @@ function NewDocumentPage() {
       competencia: message || null,
     });
 
-    window.open(buildWhatsappUrl(phone, msg), "_blank");
-    toast.success("Abrindo WhatsApp com a mensagem pronta...");
+    setPreparingWhatsapp(true);
+    setTimeout(() => {
+      window.open(buildWhatsappUrl(phone, msg), "_blank");
+      setPreparingWhatsapp(false);
+      toast.success("Abrindo WhatsApp com a mensagem pronta...");
+    }, 3000);
   };
 
   const copyLink = async () => {
