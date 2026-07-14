@@ -163,6 +163,7 @@ function DocumentsPage() {
                 <SelectItem value="visualizado">Visualizado</SelectItem>
                 <SelectItem value="assinado">Assinado</SelectItem>
                 <SelectItem value="recusado">Recusado</SelectItem>
+                <SelectItem value="cancelado">Cancelado</SelectItem>
                 <SelectItem value="expirado">Expirado</SelectItem>
               </SelectContent>
             </Select>
