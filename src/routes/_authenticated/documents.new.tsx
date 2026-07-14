@@ -28,6 +28,8 @@ function NewDocumentPage() {
   const [dragOver, setDragOver] = useState(false);
   const [name, setName] = useState("");
   const [clientId, setClientId] = useState<string>("new");
+  const [clientPickerOpen, setClientPickerOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [recipientPhone, setRecipientPhone] = useState("");
   const [message, setMessage] = useState("");
