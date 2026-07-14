@@ -5,28 +5,28 @@ export type DocStatus = "pendente" | "visualizado" | "assinado" | "recusado" | "
 const config: Record<DocStatus, { label: string; className: string; dot: string }> = {
   pendente: {
     label: "Pendente",
-    className: "bg-warning/10 text-warning-foreground border-warning/30",
-    dot: "bg-warning",
+    className: "bg-warning text-warning-foreground border-warning",
+    dot: "bg-warning-foreground/80",
   },
   visualizado: {
     label: "Visualizado",
-    className: "bg-info/10 text-info-foreground border-info/30",
-    dot: "bg-info",
+    className: "bg-info text-info-foreground border-info",
+    dot: "bg-info-foreground/80",
   },
   assinado: {
     label: "Assinado",
-    className: "bg-success/10 text-success-foreground border-success/30",
-    dot: "bg-success",
+    className: "bg-success text-success-foreground border-success",
+    dot: "bg-success-foreground/80",
   },
   recusado: {
     label: "Recusado",
-    className: "bg-destructive/10 text-destructive-foreground border-destructive/30",
-    dot: "bg-destructive",
+    className: "bg-destructive text-destructive-foreground border-destructive",
+    dot: "bg-destructive-foreground/80",
   },
   expirado: {
     label: "Expirado",
-    className: "bg-muted text-muted-foreground border-border",
-    dot: "bg-muted-foreground",
+    className: "bg-foreground text-background border-foreground",
+    dot: "bg-background/70",
   },
 };
 
