@@ -69,7 +69,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             .download(doc.file_path);
           if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF original");
           const pdfBytes = new Uint8Array(await pdfBlob.arrayBuffer());
-          const { PDFDocument, degrees } = await import("pdf-lib");
           const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
           const pngImage = await pdfDoc.embedPng(buf);
           const firstPage = pdfDoc.getPages()[0];
