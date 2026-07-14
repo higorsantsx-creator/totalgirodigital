@@ -182,7 +182,6 @@ function NewDocumentPage() {
       link: created.link,
       deadline: created.deadline,
       competencia: message || null,
-      template: profileTpl,
     });
     window.open(buildWhatsappUrl(created.phone, msg), "_blank");
   };
