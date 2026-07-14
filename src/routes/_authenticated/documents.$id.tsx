@@ -155,7 +155,15 @@ function DocumentDetailPage() {
               {pdfUrl && (
                 <Button asChild variant="outline" className="w-full justify-start">
                   <a href={pdfUrl} target="_blank" rel="noreferrer">
-                    <Download className="mr-2 size-4" /> Baixar PDF
+                    <Download className="mr-2 size-4" />
+                    {doc.signed_file_path ? "Baixar PDF assinado" : "Baixar PDF"}
+                  </a>
+                </Button>
+              )}
+              {originalUrl && (
+                <Button asChild variant="ghost" className="w-full justify-start">
+                  <a href={originalUrl} target="_blank" rel="noreferrer">
+                    <Download className="mr-2 size-4" /> Baixar PDF original
                   </a>
                 </Button>
               )}
