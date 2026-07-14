@@ -31,9 +31,10 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           .maybeSingle();
 
         // signed url for pdf (10 min)
+        const displayPath = doc.signed_file_path ?? doc.file_path;
         const { data: urlData } = await supabaseAdmin.storage
           .from("documents")
-          .createSignedUrl(doc.file_path, 60 * 10);
+          .createSignedUrl(displayPath, 60 * 10);
 
         // mark viewed (first time)
         if (!doc.viewed_at && status === "pendente") {
