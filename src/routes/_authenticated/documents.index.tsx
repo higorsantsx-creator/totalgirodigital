@@ -26,15 +26,24 @@ import { toast } from "sonner";
 import { buildWhatsappUrl, whatsappMessage } from "@/lib/whatsapp";
 import { useAuth } from "@/hooks/use-auth";
 
+const STATUS_VALUES = ["pendente", "visualizado", "assinado", "recusado", "cancelado", "expirado"] as const;
+
 export const Route = createFileRoute("/_authenticated/documents/")({
   component: DocumentsPage,
+  validateSearch: (search: Record<string, unknown>): { status?: DocStatus } => {
+    const s = search.status;
+    return typeof s === "string" && (STATUS_VALUES as readonly string[]).includes(s)
+      ? { status: s as DocStatus }
+      : {};
+  },
 });
 
 function DocumentsPage() {
   const qc = useQueryClient();
   const { user } = useAuth();
+  const { status: initialStatus } = Route.useSearch();
   const [q, setQ] = useState("");
-  const [statusFilter, setStatusFilter] = useState<DocStatus | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<DocStatus | "all">(initialStatus ?? "all");
 
   const { data: docs, isLoading } = useQuery({
     queryKey: ["documents", { q, statusFilter }],
