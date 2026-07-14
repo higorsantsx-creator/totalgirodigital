@@ -58,7 +58,8 @@ function SignPage() {
   }, [token]);
 
   const submit = async () => {
-    if (!typedName.trim()) return toast.error("Digite seu nome completo");
+    const parts = typedName.trim().split(/\s+/).filter((p) => p.length >= 2);
+    if (parts.length < 2) return toast.error("Digite seu nome completo (nome e sobrenome)");
     if (!signature) return toast.error("Desenhe sua assinatura primeiro");
     setSubmitting(true);
     const res = await fetch(`/api/public/sign/${token}/confirm`, {
@@ -236,8 +237,9 @@ function SignPage() {
                       id="signer-name"
                       value={typedName}
                       onChange={(e) => setTypedName(e.target.value)}
-                      placeholder="Digite seu nome"
+                      placeholder="Nome e sobrenome"
                     />
+                    <p className="text-[11px] text-muted-foreground">Informe seu nome completo (nome e sobrenome).</p>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Sua assinatura</Label>
@@ -246,7 +248,7 @@ function SignPage() {
                   <div className="flex flex-col gap-2 pt-1">
                     <Button
                       onClick={submit}
-                      disabled={submitting || !signature || !typedName.trim()}
+                      disabled={submitting || !signature || typedName.trim().split(/\s+/).filter((p) => p.length >= 2).length < 2}
                       className="h-11 w-full font-semibold"
                     >
                       {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
