@@ -64,6 +64,19 @@ function DocumentsPage() {
     },
   });
 
+  const { data: profileTpl } = useQuery({
+    queryKey: ["profile-whatsapp-template", user?.id],
+    enabled: Boolean(user),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("whatsapp_template")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data?.whatsapp_template ?? null;
+    },
+  });
+
   const documents = docs ?? [];
 
   const copyLink = async (token: string) => {
@@ -89,6 +102,7 @@ function DocumentsPage() {
       documentName: d.name,
       link,
       deadline: d.deadline,
+      template: profileTpl,
     });
     window.open(buildWhatsappUrl(d.recipient_phone, msg), "_blank");
   };
