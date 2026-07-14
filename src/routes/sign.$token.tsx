@@ -237,8 +237,9 @@ function SignPage() {
                       id="signer-name"
                       value={typedName}
                       onChange={(e) => setTypedName(e.target.value)}
-                      placeholder="Digite seu nome"
+                      placeholder="Nome e sobrenome"
                     />
+                    <p className="text-[11px] text-muted-foreground">Informe seu nome completo (nome e sobrenome).</p>
                   </div>
                   <div className="space-y-1.5">
                     <Label>Sua assinatura</Label>
