@@ -59,6 +59,50 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           .upload(sigPath, buf, { contentType: "image/png", upsert: true });
         if (upErr) return Response.json({ error: upErr.message }, { status: 500 });
 
+        // Embed signature into the PDF (stamp on last page) and save as signed copy
+        let signedFilePath: string | null = null;
+        try {
+          const { data: pdfBlob, error: dlErr } = await supabaseAdmin.storage
+            .from("documents")
+            .download(doc.file_path);
+          if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF");
+          const pdfBytes = new Uint8Array(await pdfBlob.arrayBuffer());
+          const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+          const pdfDoc = await PDFDocument.load(pdfBytes);
+          const pngImage = await pdfDoc.embedPng(buf);
+          const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+          const pages = pdfDoc.getPages();
+          const lastPage = pages[pages.length - 1];
+          const { width } = lastPage.getSize();
+          const margin = 40;
+          const sigWidth = 180;
+          const sigDims = pngImage.scale(sigWidth / pngImage.width);
+          const x = width - margin - sigDims.width;
+          const y = margin + 30;
+          lastPage.drawRectangle({
+            x: x - 8,
+            y: y - 8,
+            width: sigDims.width + 16,
+            height: sigDims.height + 42,
+            borderColor: rgb(0.85, 0.85, 0.85),
+            borderWidth: 0.5,
+          });
+          lastPage.drawImage(pngImage, { x, y: y + 20, width: sigDims.width, height: sigDims.height });
+          const label = `${body.signer_name ?? doc.id}`;
+          const meta = `Assinado em ${new Date(now).toLocaleString("pt-BR")}${ip ? ` • IP ${ip}` : ""}`;
+          lastPage.drawText(label, { x, y: y + 10, size: 8, font, color: rgb(0.1, 0.1, 0.1) });
+          lastPage.drawText(meta, { x, y: y, size: 6, font, color: rgb(0.35, 0.35, 0.35) });
+          const signedBytes = await pdfDoc.save();
+          signedFilePath = `${doc.owner_id}/${doc.id}/signed.pdf`;
+          const { error: sUpErr } = await supabaseAdmin.storage
+            .from("documents")
+            .upload(signedFilePath, signedBytes, { contentType: "application/pdf", upsert: true });
+          if (sUpErr) throw sUpErr;
+        } catch (e) {
+          console.error("[sign] embed signature failed", e);
+          signedFilePath = null;
+        }
+
         await supabaseAdmin
           .from("documents")
           .update({
@@ -67,6 +111,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             signer_ip: ip,
             signer_user_agent: ua,
             signature_path: sigPath,
+            signed_file_path: signedFilePath,
             signer_typed_name: body.signer_name ?? null,
           })
           .eq("id", doc.id);
