@@ -55,16 +55,18 @@ function DocumentDetailPage() {
   });
 
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [originalUrl, setOriginalUrl] = useState<string | null>(null);
   const [signatureUrl, setSignatureUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!doc) return;
     let mounted = true;
     setPdfUrl(null);
+    setOriginalUrl(null);
     setSignatureUrl(null);
-    const filePath = doc.signed_file_path ?? doc.file_path;
+    const displayPath = doc.signed_file_path ?? doc.file_path;
     logDiagnostic("document.signed-url.start", { id: doc.id, hasSignedFile: Boolean(doc.signed_file_path) });
-    supabase.storage.from("documents").createSignedUrl(filePath, 3600).then(({ data, error }) => {
+    supabase.storage.from("documents").createSignedUrl(displayPath, 3600).then(({ data, error }) => {
       if (!mounted) return;
       if (error || !data) {
         logDiagnostic("document.signed-url.error", { id: doc.id }, error ?? new Error("Missing document signed URL"));
@@ -72,6 +74,11 @@ function DocumentDetailPage() {
       }
       setPdfUrl(data.signedUrl);
     });
+    if (doc.signed_file_path && doc.file_path && doc.file_path !== doc.signed_file_path) {
+      supabase.storage.from("documents").createSignedUrl(doc.file_path, 3600).then(({ data }) => {
+        if (mounted && data) setOriginalUrl(data.signedUrl);
+      });
+    }
     if (doc.signature_path) {
       supabase.storage.from("signatures").createSignedUrl(doc.signature_path, 3600).then(({ data, error }) => {
         if (!mounted) return;
@@ -148,7 +155,15 @@ function DocumentDetailPage() {
               {pdfUrl && (
                 <Button asChild variant="outline" className="w-full justify-start">
                   <a href={pdfUrl} target="_blank" rel="noreferrer">
-                    <Download className="mr-2 size-4" /> Baixar PDF
+                    <Download className="mr-2 size-4" />
+                    {doc.signed_file_path ? "Baixar PDF assinado" : "Baixar PDF"}
+                  </a>
+                </Button>
+              )}
+              {originalUrl && (
+                <Button asChild variant="ghost" className="w-full justify-start">
+                  <a href={originalUrl} target="_blank" rel="noreferrer">
+                    <Download className="mr-2 size-4" /> Baixar PDF original
                   </a>
                 </Button>
               )}

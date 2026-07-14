@@ -59,14 +59,14 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           .upload(sigPath, buf, { contentType: "image/png", upsert: true });
         if (upErr) return Response.json({ error: upErr.message }, { status: 500 });
 
-        // Embed signature into the PDF and save as signed copy
-        let signedFilePath: string | null = null;
-        let embedError: string | null = null;
+        // Embed signature into the PDF and save as a NEW signed copy.
+        // The document is only marked as "assinado" after this succeeds.
+        let signedFilePath: string;
         try {
           const { data: pdfBlob, error: dlErr } = await supabaseAdmin.storage
             .from("documents")
             .download(doc.file_path);
-          if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF");
+          if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF original");
           const pdfBytes = new Uint8Array(await pdfBlob.arrayBuffer());
           const { PDFDocument, degrees } = await import("pdf-lib");
           const pdfDoc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
@@ -106,10 +106,21 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           if (sUpErr) throw sUpErr;
         } catch (e) {
           console.error("[sign] embed signature failed", e);
-          embedError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
-          signedFilePath = null;
+          const embedError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
+          // Register the failure in audit_logs but DO NOT mark the document as signed.
+          await supabaseAdmin.from("audit_logs").insert({
+            action: "sign_pdf_generation_failed",
+            entity: "document",
+            entity_id: doc.id,
+            ip,
+            user_agent: ua,
+            metadata: { embed_error: embedError, signature_path: sigPath },
+          });
+          return Response.json(
+            { error: "Não foi possível gerar o PDF assinado. Tente novamente." },
+            { status: 500 },
+          );
         }
-
 
         await supabaseAdmin
           .from("documents")
@@ -130,12 +141,12 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           user_agent: ua,
           metadata: {
             ...(body.signer_name ? { signer_name: body.signer_name } : {}),
-            ...(embedError ? { embed_error: embedError } : {}),
-            embed_success: signedFilePath !== null,
+            signed_file_path: signedFilePath,
           },
         });
 
-        return Response.json({ ok: true });
+        return Response.json({ ok: true, signed_file_path: signedFilePath });
+
       },
     },
   },
