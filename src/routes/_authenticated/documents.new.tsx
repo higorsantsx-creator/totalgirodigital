@@ -171,10 +171,12 @@ function NewDocumentPage() {
     if (!created) return;
     const msg = whatsappMessage({
       senderName: user?.user_metadata?.full_name || user?.email,
+      empresa: user?.user_metadata?.full_name || user?.email,
       recipientName,
       documentName: created.docName,
       link: created.link,
       deadline: created.deadline,
+      competencia: message || null,
     });
     window.open(buildWhatsappUrl(created.phone, msg), "_blank");
   };
