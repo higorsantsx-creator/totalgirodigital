@@ -97,7 +97,7 @@ function DocumentsPage() {
   const cancelDoc = async (id: string) => {
     const { error } = await supabase
       .from("documents")
-      .update({ status: "expirado", cancelled_at: new Date().toISOString() })
+      .update({ status: "recusado", declined_at: new Date().toISOString() })
       .eq("id", id);
     if (error) {
       logDiagnostic("documents.cancel.error", { id }, error);
