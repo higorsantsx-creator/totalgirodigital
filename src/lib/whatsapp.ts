@@ -82,7 +82,7 @@ export function whatsappMessage(opts: {
   empresa?: string | null;
   template?: string | null;
 }) {
-  const empresa = opts.empresa || opts.senderName || "Sua empresa";
+  const empresa = opts.empresa || opts.senderName || "Grupo Total Giro";
   const funcionario = opts.recipientName || "funcionário(a)";
   const competencia = opts.competencia || "-";
   const dataEnvio = formatDateTime(new Date());
