@@ -67,31 +67,39 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             .download(doc.file_path);
           if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF");
           const pdfBytes = new Uint8Array(await pdfBlob.arrayBuffer());
-          const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+          const { PDFDocument, degrees } = await import("pdf-lib");
           const pdfDoc = await PDFDocument.load(pdfBytes);
           const pngImage = await pdfDoc.embedPng(buf);
-          const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-          const pages = pdfDoc.getPages();
-          const lastPage = pages[pages.length - 1];
-          const { width } = lastPage.getSize();
-          const margin = 40;
-          const sigWidth = 180;
-          const sigDims = pngImage.scale(sigWidth / pngImage.width);
-          const x = width - margin - sigDims.width;
-          const y = margin + 30;
-          lastPage.drawRectangle({
-            x: x - 8,
-            y: y - 8,
-            width: sigDims.width + 16,
-            height: sigDims.height + 42,
-            borderColor: rgb(0.85, 0.85, 0.85),
-            borderWidth: 0.5,
-          });
-          lastPage.drawImage(pngImage, { x, y: y + 20, width: sigDims.width, height: sigDims.height });
-          const label = `${body.signer_name ?? doc.id}`;
-          const meta = `Assinado em ${new Date(now).toLocaleString("pt-BR")}${ip ? ` • IP ${ip}` : ""}`;
-          lastPage.drawText(label, { x, y: y + 10, size: 8, font, color: rgb(0.1, 0.1, 0.1) });
-          lastPage.drawText(meta, { x, y: y, size: 6, font, color: rgb(0.35, 0.35, 0.35) });
+          const firstPage = pdfDoc.getPages()[0];
+
+          // Fixed signature slots for the Total Giro payslip template (A4 portrait,
+          // 595.32 x 841.92pt). Each holerite has a vertical signature line on the
+          // right side. Coordinates measured from the source PDF.
+          const slots = [
+            { xLine: 550.7, yBottom: 638.52, yTop: 779.16 }, // top payslip
+            { xLine: 550.7, yBottom: 227.04, yTop: 367.56 }, // bottom payslip
+          ];
+
+          for (const slot of slots) {
+            const lineLen = slot.yTop - slot.yBottom;
+            const targetLen = lineLen * 0.9; // signature length along the line
+            const scale = targetLen / pngImage.width;
+            const drawW = pngImage.width * scale; // becomes vertical extent after 90° rotation
+            const drawH = Math.min(pngImage.height * scale, 30); // horizontal extent, capped
+            // Rotating 90° CCW around (x, y): image spans [y, y+drawW] vertically
+            // and [x-drawH, x] horizontally. Center it on the signature line.
+            const midY = (slot.yBottom + slot.yTop) / 2;
+            const anchorX = slot.xLine + drawH / 2;
+            const anchorY = midY - drawW / 2;
+            firstPage.drawImage(pngImage, {
+              x: anchorX,
+              y: anchorY,
+              width: drawW,
+              height: drawH,
+              rotate: degrees(90),
+            });
+          }
+
           const signedBytes = await pdfDoc.save();
           signedFilePath = `${doc.owner_id}/${doc.id}/signed.pdf`;
           const { error: sUpErr } = await supabaseAdmin.storage
