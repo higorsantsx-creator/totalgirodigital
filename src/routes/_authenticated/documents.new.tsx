@@ -149,10 +149,12 @@ function NewDocumentPage() {
 
     const msg = whatsappMessage({
       senderName: user?.user_metadata?.full_name || user?.email,
+      empresa: user?.user_metadata?.full_name || user?.email,
       recipientName,
       documentName: name,
       link,
       deadline: doc.deadline,
+      competencia: message || null,
     });
     window.open(buildWhatsappUrl(phone, msg), "_blank");
     toast.success("Abrindo WhatsApp com a mensagem pronta...");
