@@ -63,11 +63,11 @@ function DashboardPage() {
       <div className="mx-auto max-w-7xl space-y-8 p-8">
         {/* KPIs */}
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-          <KpiCard label="Total" value={total} icon={FileText} accent="text-foreground" />
-          <KpiCard label="Pendentes" value={pendentes} icon={Clock} accent="text-warning" pulse />
-          <KpiCard label="Assinados" value={assinados} icon={CheckCircle2} accent="text-success" />
-          <KpiCard label="Recusados" value={recusados} icon={XCircle} accent="text-destructive" />
-          <KpiCard label="Expirados" value={expirados} icon={TimerOff} accent="text-muted-foreground" />
+          <KpiCard label="Total" value={total} icon={FileText} accent="text-foreground" to="/documents" />
+          <KpiCard label="Pendentes" value={pendentes} icon={Clock} accent="text-warning" pulse to="/documents" search={{ status: "pendente" }} />
+          <KpiCard label="Assinados" value={assinados} icon={CheckCircle2} accent="text-success" to="/documents" search={{ status: "assinado" }} />
+          <KpiCard label="Recusados" value={recusados} icon={XCircle} accent="text-destructive" to="/documents" search={{ status: "recusado" }} />
+          <KpiCard label="Expirados" value={expirados} icon={TimerOff} accent="text-muted-foreground" to="/documents" search={{ status: "expirado" }} />
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">
