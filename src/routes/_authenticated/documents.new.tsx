@@ -150,7 +150,6 @@ function NewDocumentPage() {
     setLoading(false);
     const link = `${window.location.origin}/sign/${doc.access_token}`;
     const phone = recipientPhone.trim();
-    setCreated({ link, phone, docName: name, deadline: doc.deadline });
 
     const msg = whatsappMessage({
       senderName: user?.user_metadata?.full_name || user?.email,
@@ -166,7 +165,9 @@ function NewDocumentPage() {
     setTimeout(() => {
       window.open(buildWhatsappUrl(phone, msg), "_blank");
       setPreparingWhatsapp(false);
-      toast.success("Abrindo WhatsApp com a mensagem pronta...");
+      qc.invalidateQueries({ queryKey: ["documents"] });
+      toast.success("Link de assinatura enviado com sucesso!");
+      navigate({ to: "/documents" });
     }, 3000);
   };
 
