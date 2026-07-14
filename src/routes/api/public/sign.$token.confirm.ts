@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { PDFDocument, degrees } from "pdf-lib";
 
 export const Route = createFileRoute("/api/public/sign/$token/confirm")({
   server: {
