@@ -102,6 +102,7 @@ function DocumentsPage() {
       documentName: d.name,
       link,
       deadline: d.deadline,
+      template: profileTpl,
     });
     window.open(buildWhatsappUrl(d.recipient_phone, msg), "_blank");
   };
