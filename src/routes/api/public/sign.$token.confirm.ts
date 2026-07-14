@@ -110,9 +110,9 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           // Register the failure in audit_logs but DO NOT mark the document as signed.
           await supabaseAdmin.from("audit_logs").insert({
             action: "sign_pdf_generation_failed",
-            resource_type: "document",
-            resource_id: doc.id,
-            ip_address: ip,
+            entity: "document",
+            entity_id: doc.id,
+            ip,
             user_agent: ua,
             metadata: { embed_error: embedError, signature_path: sigPath },
           });
