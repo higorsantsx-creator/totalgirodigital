@@ -471,20 +471,48 @@ function NewDocumentPage() {
                 </div>
               )}
 
-              <div className="space-y-2">
-                <Label htmlFor="msg">Competência (ex: Outubro/2026)</Label>
-                <p className="text-xs text-muted-foreground">
-                  Período de referência do documento. Aparece na mensagem enviada ao cliente.
-                </p>
-                <Input id="msg" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Outubro/2026" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="deadline">Data limite (opcional)</Label>
-                <p className="text-xs text-muted-foreground">
-                  Prazo final para o cliente assinar. Deixe em branco se não houver prazo.
-                </p>
-                <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-              </div>
+              <TooltipProvider delayDuration={150}>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="msg">Competência (ex: Outubro/2026)</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Ajuda sobre competência"
+                          className="text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <HelpCircle className="size-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        Período de referência do documento. Aparece na mensagem enviada ao cliente.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Input id="msg" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Outubro/2026" />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <Label htmlFor="deadline">Data limite (opcional)</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Ajuda sobre data limite"
+                          className="text-muted-foreground transition-colors hover:text-foreground"
+                        >
+                          <HelpCircle className="size-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        Prazo final para o cliente assinar. Deixe em branco se não houver prazo.
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+                </div>
+              </TooltipProvider>
 
             </div>
 
