@@ -67,11 +67,17 @@ function SignPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "sign", signature_data_url: signature, signer_name: typedName.trim() }),
     });
-    setSubmitting(false);
     if (!res.ok) {
+      setSubmitting(false);
       const j = await res.json().catch(() => ({}));
       return toast.error(j.error ?? "Erro ao assinar");
     }
+    // Reload document to display the newly signed PDF
+    try {
+      const refreshed = await fetch(`/api/public/sign/${token}`).then((r) => r.json());
+      if (refreshed && !refreshed.error) setDoc(refreshed);
+    } catch { /* ignore */ }
+    setSubmitting(false);
     setDone("assinado");
   };
 
