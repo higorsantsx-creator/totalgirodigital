@@ -314,8 +314,13 @@ function NewDocumentPage() {
             <div className="grid gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do documento</Label>
+                <p className="text-xs text-muted-foreground">
+                  Como o documento vai aparecer para o cliente e na sua lista (ex: Holerite Outubro/2026).
+                </p>
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Contrato de Serviços" />
               </div>
+
+
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
