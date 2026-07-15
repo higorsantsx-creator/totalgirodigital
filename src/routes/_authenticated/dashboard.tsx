@@ -7,7 +7,7 @@ import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import { relativeDate } from "@/lib/format";
 import { logDiagnostic } from "@/lib/debug-diagnostics";
 import { Plus, FileText, Clock, CheckCircle2, XCircle, TimerOff, TrendingUp } from "lucide-react";
-import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
