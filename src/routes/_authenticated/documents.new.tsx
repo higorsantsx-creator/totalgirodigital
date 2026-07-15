@@ -315,9 +315,6 @@ function NewDocumentPage() {
             <div className="grid gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do documento</Label>
-                <p className="text-xs text-muted-foreground">
-                  Como o documento vai aparecer para o cliente e na sua lista (ex: Holerite Outubro/2026).
-                </p>
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Contrato de Serviços" />
               </div>
 
@@ -330,9 +327,8 @@ function NewDocumentPage() {
                     Gerenciar clientes
                   </Link>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Selecione um cliente já cadastrado ou cadastre um novo destinatário.
-                </p>
+
+
 
                 {(() => {
                   const selected = clients?.find((c) => c.id === clientId);
