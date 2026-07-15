@@ -329,6 +329,10 @@ function NewDocumentPage() {
                     Gerenciar clientes
                   </Link>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Selecione um cliente já cadastrado ou cadastre um novo destinatário.
+                </p>
+
                 {(() => {
                   const selected = clients?.find((c) => c.id === clientId);
                   const filtered = (clients ?? []).filter((c) => {
