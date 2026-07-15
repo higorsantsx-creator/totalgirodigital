@@ -131,7 +131,7 @@ function DashboardPage() {
                       boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
                     }}
                     labelStyle={{ fontWeight: 600, color: "var(--color-foreground)", textTransform: "capitalize" }}
-                    formatter={(value: number) => [`${value} envio${value === 1 ? "" : "s"}`, "Documentos"]}
+                    formatter={(value) => [`${Number(value)} envio${Number(value) === 1 ? "" : "s"}`, "Documentos"]}
                   />
                   <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} maxBarSize={44} />
                 </BarChart>
