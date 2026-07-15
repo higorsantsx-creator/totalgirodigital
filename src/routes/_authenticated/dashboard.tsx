@@ -73,23 +73,72 @@ function DashboardPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Chart */}
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <h2 className="font-semibold">Envios recentes</h2>
                 <p className="text-xs text-muted-foreground">Últimos 7 dias</p>
               </div>
-              <TrendingUp className="size-4 text-muted-foreground" />
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Total</p>
+                  <p className="font-display text-lg font-bold leading-none">
+                    {chartData.reduce((s, d) => s + d.count, 0)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Média/dia</p>
+                  <p className="font-display text-lg font-bold leading-none">
+                    {(chartData.reduce((s, d) => s + d.count, 0) / 7).toFixed(1)}
+                  </p>
+                </div>
+                <div className="grid size-8 place-items-center rounded-full bg-accent/10 text-accent">
+                  <TrendingUp className="size-4" />
+                </div>
+              </div>
             </div>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis dataKey="day" tickLine={false} axisLine={false} fontSize={11} />
-                  <Tooltip cursor={{ fill: "hsl(var(--muted))" }} contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                  <Bar dataKey="count" fill="var(--color-accent)" radius={[6, 6, 0, 0]} />
+                <BarChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={1} />
+                      <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.55} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis
+                    dataKey="day"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    stroke="var(--color-muted-foreground)"
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    stroke="var(--color-muted-foreground)"
+                    allowDecimals={false}
+                    width={32}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "var(--color-accent)", fillOpacity: 0.08 }}
+                    contentStyle={{
+                      borderRadius: 10,
+                      fontSize: 12,
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-card)",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+                    }}
+                    labelStyle={{ fontWeight: 600, color: "var(--color-foreground)", textTransform: "capitalize" }}
+                    formatter={(value: number) => [`${value} envio${value === 1 ? "" : "s"}`, "Documentos"]}
+                  />
+                  <Bar dataKey="count" fill="url(#barGradient)" radius={[6, 6, 0, 0]} maxBarSize={44} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
+
 
           {/* Quick upload */}
           <Link
