@@ -314,8 +314,13 @@ function NewDocumentPage() {
             <div className="grid gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome do documento</Label>
+                <p className="text-xs text-muted-foreground">
+                  Como o documento vai aparecer para o cliente e na sua lista (ex: Holerite Outubro/2026).
+                </p>
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Contrato de Serviços" />
               </div>
+
+
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -324,6 +329,10 @@ function NewDocumentPage() {
                     Gerenciar clientes
                   </Link>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Selecione um cliente já cadastrado ou cadastre um novo destinatário.
+                </p>
+
                 {(() => {
                   const selected = clients?.find((c) => c.id === clientId);
                   const filtered = (clients ?? []).filter((c) => {
@@ -450,10 +459,16 @@ function NewDocumentPage() {
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="rname">Nome do destinatário</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Nome completo de quem vai receber e assinar o documento.
+                    </p>
                     <Input id="rname" required value={recipientName} onChange={(e) => setRecipientName(e.target.value)} placeholder="Nome completo" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="rphone">WhatsApp</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Número com DDD que receberá o link de assinatura pelo WhatsApp.
+                    </p>
                     <Input
                       id="rphone"
                       required
@@ -467,12 +482,19 @@ function NewDocumentPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="msg">Competência (ex: Outubro/2026)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Período de referência do documento. Aparece na mensagem enviada ao cliente.
+                </p>
                 <Input id="msg" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Outubro/2026" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="deadline">Data limite (opcional)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Prazo final para o cliente assinar. Deixe em branco se não houver prazo.
+                </p>
                 <Input id="deadline" type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
               </div>
+
             </div>
 
             <Button type="submit" disabled={loading || authLoading || !file} className="w-full">
