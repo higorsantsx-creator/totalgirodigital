@@ -17,7 +17,6 @@ import {
   History as HistoryIcon,
   FileText,
   ArrowRight,
-  Sparkles,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/history")({
@@ -114,7 +113,7 @@ function HistoryPage() {
           <div className="relative flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ring-1 ring-white/15 backdrop-blur">
-                <Sparkles className="size-3.5" />
+                <HistoryIcon className="size-3.5" />
                 Auditoria em tempo real
               </div>
               <h2 className="mt-3 font-display text-3xl font-semibold leading-tight">
