@@ -16,10 +16,16 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignTokenRouteImport } from './routes/sign.$token'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
 import { Route as AuthenticatedHistoryRouteImport } from './routes/_authenticated/history'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
+import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports.index'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedReportsSignersRouteImport } from './routes/_authenticated/reports.signers'
+import { Route as AuthenticatedReportsDocumentsRouteImport } from './routes/_authenticated/reports.documents'
+import { Route as AuthenticatedReportsCompetenciasRouteImport } from './routes/_authenticated/reports.competencias'
+import { Route as AuthenticatedReportsAuditRouteImport } from './routes/_authenticated/reports.audit'
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
 import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign.$token'
@@ -59,6 +65,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHistoryRoute = AuthenticatedHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -74,11 +85,41 @@ const AuthenticatedClientsRoute = AuthenticatedClientsRouteImport.update({
   path: '/clients',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReportsIndexRoute =
+  AuthenticatedReportsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
 const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedReportsSignersRoute =
+  AuthenticatedReportsSignersRouteImport.update({
+    id: '/signers',
+    path: '/signers',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
+const AuthenticatedReportsDocumentsRoute =
+  AuthenticatedReportsDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
+const AuthenticatedReportsCompetenciasRoute =
+  AuthenticatedReportsCompetenciasRouteImport.update({
+    id: '/competencias',
+    path: '/competencias',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
+const AuthenticatedReportsAuditRoute =
+  AuthenticatedReportsAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedReportsRoute,
   } as any)
 const AuthenticatedDocumentsNewRoute =
   AuthenticatedDocumentsNewRouteImport.update({
@@ -112,11 +153,17 @@ export interface FileRoutesByFullPath {
   '/clients': typeof AuthenticatedClientsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/history': typeof AuthenticatedHistoryRoute
+  '/reports': typeof AuthenticatedReportsRouteWithChildren
   '/settings': typeof AuthenticatedSettingsRoute
   '/sign/$token': typeof SignTokenRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/documents/new': typeof AuthenticatedDocumentsNewRoute
+  '/reports/audit': typeof AuthenticatedReportsAuditRoute
+  '/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
+  '/reports/documents': typeof AuthenticatedReportsDocumentsRoute
+  '/reports/signers': typeof AuthenticatedReportsSignersRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
@@ -132,7 +179,12 @@ export interface FileRoutesByTo {
   '/sign/$token': typeof SignTokenRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/documents/new': typeof AuthenticatedDocumentsNewRoute
+  '/reports/audit': typeof AuthenticatedReportsAuditRoute
+  '/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
+  '/reports/documents': typeof AuthenticatedReportsDocumentsRoute
+  '/reports/signers': typeof AuthenticatedReportsSignersRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/reports': typeof AuthenticatedReportsIndexRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
@@ -146,11 +198,17 @@ export interface FileRoutesById {
   '/_authenticated/clients': typeof AuthenticatedClientsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/history': typeof AuthenticatedHistoryRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRouteWithChildren
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/sign/$token': typeof SignTokenRoute
   '/_authenticated/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/_authenticated/documents/new': typeof AuthenticatedDocumentsNewRoute
+  '/_authenticated/reports/audit': typeof AuthenticatedReportsAuditRoute
+  '/_authenticated/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
+  '/_authenticated/reports/documents': typeof AuthenticatedReportsDocumentsRoute
+  '/_authenticated/reports/signers': typeof AuthenticatedReportsSignersRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
@@ -164,11 +222,17 @@ export interface FileRouteTypes {
     | '/clients'
     | '/dashboard'
     | '/history'
+    | '/reports'
     | '/settings'
     | '/sign/$token'
     | '/documents/$id'
     | '/documents/new'
+    | '/reports/audit'
+    | '/reports/competencias'
+    | '/reports/documents'
+    | '/reports/signers'
     | '/documents/'
+    | '/reports/'
     | '/api/public/sign/$token'
     | '/api/public/sign/$token/confirm'
   fileRoutesByTo: FileRoutesByTo
@@ -184,7 +248,12 @@ export interface FileRouteTypes {
     | '/sign/$token'
     | '/documents/$id'
     | '/documents/new'
+    | '/reports/audit'
+    | '/reports/competencias'
+    | '/reports/documents'
+    | '/reports/signers'
     | '/documents'
+    | '/reports'
     | '/api/public/sign/$token'
     | '/api/public/sign/$token/confirm'
   id:
@@ -197,11 +266,17 @@ export interface FileRouteTypes {
     | '/_authenticated/clients'
     | '/_authenticated/dashboard'
     | '/_authenticated/history'
+    | '/_authenticated/reports'
     | '/_authenticated/settings'
     | '/sign/$token'
     | '/_authenticated/documents/$id'
     | '/_authenticated/documents/new'
+    | '/_authenticated/reports/audit'
+    | '/_authenticated/reports/competencias'
+    | '/_authenticated/reports/documents'
+    | '/_authenticated/reports/signers'
     | '/_authenticated/documents/'
+    | '/_authenticated/reports/'
     | '/api/public/sign/$token'
     | '/api/public/sign/$token/confirm'
   fileRoutesById: FileRoutesById
@@ -267,6 +342,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/history': {
       id: '/_authenticated/history'
       path: '/history'
@@ -288,12 +370,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports/': {
+      id: '/_authenticated/reports/'
+      path: '/'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
     '/_authenticated/documents/': {
       id: '/_authenticated/documents/'
       path: '/documents'
       fullPath: '/documents/'
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reports/signers': {
+      id: '/_authenticated/reports/signers'
+      path: '/signers'
+      fullPath: '/reports/signers'
+      preLoaderRoute: typeof AuthenticatedReportsSignersRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
+    '/_authenticated/reports/documents': {
+      id: '/_authenticated/reports/documents'
+      path: '/documents'
+      fullPath: '/reports/documents'
+      preLoaderRoute: typeof AuthenticatedReportsDocumentsRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
+    '/_authenticated/reports/competencias': {
+      id: '/_authenticated/reports/competencias'
+      path: '/competencias'
+      fullPath: '/reports/competencias'
+      preLoaderRoute: typeof AuthenticatedReportsCompetenciasRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
+    '/_authenticated/reports/audit': {
+      id: '/_authenticated/reports/audit'
+      path: '/audit'
+      fullPath: '/reports/audit'
+      preLoaderRoute: typeof AuthenticatedReportsAuditRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
     }
     '/_authenticated/documents/new': {
       id: '/_authenticated/documents/new'
@@ -326,10 +443,30 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedReportsRouteChildren {
+  AuthenticatedReportsAuditRoute: typeof AuthenticatedReportsAuditRoute
+  AuthenticatedReportsCompetenciasRoute: typeof AuthenticatedReportsCompetenciasRoute
+  AuthenticatedReportsDocumentsRoute: typeof AuthenticatedReportsDocumentsRoute
+  AuthenticatedReportsSignersRoute: typeof AuthenticatedReportsSignersRoute
+  AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
+}
+
+const AuthenticatedReportsRouteChildren: AuthenticatedReportsRouteChildren = {
+  AuthenticatedReportsAuditRoute: AuthenticatedReportsAuditRoute,
+  AuthenticatedReportsCompetenciasRoute: AuthenticatedReportsCompetenciasRoute,
+  AuthenticatedReportsDocumentsRoute: AuthenticatedReportsDocumentsRoute,
+  AuthenticatedReportsSignersRoute: AuthenticatedReportsSignersRoute,
+  AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
+}
+
+const AuthenticatedReportsRouteWithChildren =
+  AuthenticatedReportsRoute._addFileChildren(AuthenticatedReportsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientsRoute: typeof AuthenticatedClientsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedHistoryRoute: typeof AuthenticatedHistoryRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRouteWithChildren
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedDocumentsIdRoute: typeof AuthenticatedDocumentsIdRoute
   AuthenticatedDocumentsNewRoute: typeof AuthenticatedDocumentsNewRoute
@@ -340,6 +477,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientsRoute: AuthenticatedClientsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedHistoryRoute: AuthenticatedHistoryRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRouteWithChildren,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedDocumentsIdRoute: AuthenticatedDocumentsIdRoute,
   AuthenticatedDocumentsNewRoute: AuthenticatedDocumentsNewRoute,
