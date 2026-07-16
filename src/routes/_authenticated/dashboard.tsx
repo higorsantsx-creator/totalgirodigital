@@ -72,10 +72,12 @@ function DashboardPage() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Chart */}
-          <div className="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
-            <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:border-accent/30 hover:shadow-xl lg:col-span-2">
+            <div className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-accent/5 blur-3xl transition-all duration-700 group-hover:scale-125 group-hover:bg-accent/15" />
+            <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-accent/5 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full" />
+            <div className="relative mb-5 flex items-start justify-between gap-4">
               <div>
-                <h2 className="font-semibold">Envios recentes</h2>
+                <h2 className="font-semibold transition-colors group-hover:text-accent">Envios recentes</h2>
                 <p className="text-xs text-muted-foreground">Últimos 7 dias</p>
               </div>
               <div className="flex items-center gap-4">
@@ -91,11 +93,12 @@ function DashboardPage() {
                     {(chartData.reduce((s, d) => s + d.count, 0) / 7).toFixed(1)}
                   </p>
                 </div>
-                <div className="grid size-8 place-items-center rounded-full bg-accent/10 text-accent">
-                  <TrendingUp className="size-4" />
+                <div className="grid size-8 place-items-center rounded-full bg-accent/10 text-accent transition-all duration-500 group-hover:scale-110 group-hover:bg-accent group-hover:text-accent-foreground group-hover:shadow-md">
+                  <TrendingUp className="size-4 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </div>
               </div>
             </div>
+
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
