@@ -6,13 +6,13 @@ export const Route = createFileRoute("/_authenticated/reports")({
   component: ReportsLayout,
 });
 
-const TABS = [
+const TABS: Array<{ to: string; label: string; icon: typeof BarChart3; exact?: boolean }> = [
   { to: "/reports", label: "Visão geral", icon: BarChart3, exact: true },
   { to: "/reports/documents", label: "Documentos", icon: FileText },
   { to: "/reports/signers", label: "Funcionários", icon: Users },
   { to: "/reports/competencias", label: "Competências", icon: CalendarRange },
   { to: "/reports/audit", label: "Auditoria", icon: ShieldCheck },
-] as const;
+];
 
 function ReportsLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
