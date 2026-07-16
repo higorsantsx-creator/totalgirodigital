@@ -1,56 +1,94 @@
-## Objetivo
+## Seção de Relatórios — Plano de Implementação
 
-Redesenhar `/documents/new` seguindo a direção **Elegant structured card** com paleta **Navy Trust** (#0f1b3d, #1e3a5f, #3b6fa0, #e8edf3). Card único centralizado, dropzone com ícone em pílula, labels em uppercase, campos com fundo levemente cinza e foco em navy, botão principal navy. Toda a lógica atual permanece.
+Escopo grande. Proponho entregar em **3 fases** para manter qualidade e permitir feedback intermediário. Antes de começar, algumas decisões importantes.
 
-## Arquivo
+---
 
-- `src/routes/_authenticated/documents.new.tsx` — reescrita do JSX/estilos (lógica intocada).
+### Perguntas rápidas antes de iniciar
 
-## Estrutura
+1. **Dados disponíveis**: O sistema hoje tem `documents`, `document_signers`, `document_history`, `audit_logs`, `profiles`, `clients`. Não vejo tabelas de "empresa/departamento/competência" separadas. Vou usar:
+   - **Empresa** → `clients.name`
+   - **Funcionário** → `document_signers.signer_name/email`
+   - **Competência** → campo do documento (usar `documents.name` ou criar um campo `competencia`?) — **preciso confirmar**
+   - **Departamento** → não existe hoje. Ignorar filtro ou criar campo em `profiles`?
 
-Container: `min-h-screen bg-slate-50` centralizado, card `max-w-2xl rounded-2xl border shadow-xl` branco.
+2. **Agendamento por e-mail**: você quer só a **UI preparada** (botões/modais sem back-end funcional), correto? Sem cron real ainda?
 
-1. **Header do card**: título `Novo envio de documento` (bold, 2xl) + subtítulo `Preencha os dados abaixo para gerar o link de assinatura.`; borda inferior sutil.
-2. **Dropzone**: altura `h-40`, borda tracejada `border-slate-200`, hover navy suave (`hover:border-primary/40`, `hover:bg-primary/5`), círculo branco com sombra contendo ícone `UploadCloud` em cor primária navy; texto "Arraste o PDF aqui ou **clique para selecionar**" e dica `PDF (máximo 20MB)`. Quando um arquivo já está selecionado: mesma linha atual (FileText + nome + tamanho + botão remover), mas dentro de um container `rounded-xl border-slate-200 bg-slate-50/50` no lugar do dropzone.
-3. **Seção formulário** (`space-y-5`):
-   - Nome do documento (linha inteira)
-   - Cliente (linha inteira) — mantém o Popover atual com o mesmo botão trigger, mas restilizado com `rounded-lg border-slate-200 bg-slate-50/30 py-3`. Link "Gerenciar clientes" no canto direito da label.
-   - Grid 2 colunas: Nome do destinatário + WhatsApp (quando cliente = "new")
-   - Card compacto do destinatário selecionado (quando cliente ≠ "new") — mantido.
-   - Grid 2 colunas: Competência + Data limite (opcional), cada uma com ícone `HelpCircle` ao lado do label e tooltip do shadcn com o texto atual.
-4. **Botão principal**: largura total, `py-4 rounded-xl`, bg navy `#1e3a5f`, hover `#3b6fa0`, sombra `shadow-lg shadow-slate-300/50`, ícone de seta à direita. Estado loading mantém `Loader2` giratório.
-5. **Estado de sucesso** (`created`): mesmo card estrutural, ícone check em círculo navy claro, botão WhatsApp verde mantido, campo readonly do link e ações "Ver documentos" / "Enviar outro" como está — apenas restilizado com a nova borda/padding.
-6. **Overlay "Preparando WhatsApp..."**: mantido, com o ícone em círculo navy claro em vez de verde-sucesso (opcional — manter verde por consistência com WhatsApp).
+3. **Acesso**: relatórios só para `admin` (via `has_role`), ou qualquer usuário autenticado vê os próprios?
 
-## Estilo dos campos
+---
 
-Padrão para inputs e trigger do popover:
-- `w-full px-4 py-3 rounded-lg border border-slate-200 bg-slate-50/30`
-- Foco: `focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none`
-- Placeholder: `placeholder:text-slate-400`
+### Arquitetura proposta
 
-Labels:
-- `block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2`
+**Nova rota principal**: `/_authenticated/reports` (layout com abas)
+```
+/reports              → Dashboard (cards + gráficos principais)
+/reports/documents    → Relatório de documentos + filtros + export
+/reports/signers      → Relatório de funcionários
+/reports/audit        → Relatório de auditoria
+/reports/competencias → Relatório por competência
+```
 
-## Design tokens
+**Stack técnica**:
+- **Gráficos**: `recharts` (já compatível, leve, SSR-safe)
+- **Tabelas**: `@tanstack/react-table` (paginação, sort, filtros nativos)
+- **Export PDF**: `jspdf` + `jspdf-autotable` (client-side, sem worker)
+- **Export XLSX**: `xlsx` (SheetJS) client-side
+- **Export CSV**: nativo
+- **Impressão**: `window.print()` + CSS `@media print`
+- **Data fetching**: server functions com `requireSupabaseAuth` + agregações SQL
 
-Ajustar `src/styles.css` (`:root` e `.dark` conforme aplicável) para refletir Navy Trust nas variáveis semânticas:
-- `--primary: oklch(...)` correspondente a `#1e3a5f`
-- `--primary-foreground: oklch(...)` correspondente a `#e8edf3`
-- `--ring` alinhado ao primário
-- `--accent` = `#3b6fa0`
+**Componentes reutilizáveis**:
+- `<KpiCard>` — card de métrica com ícone, valor, trend
+- `<ReportChart>` — wrapper para gráficos recharts
+- `<ReportTable>` — tabela com paginação/sort/search/export
+- `<FilterBar>` — filtros combinados (período, empresa, status, etc)
+- `<ExportMenu>` — dropdown PDF/XLSX/CSV/Imprimir
 
-Isso propaga a paleta para todos os componentes shadcn sem hardcode. Onde precisar de tons finos (slate-50/200/400/500) usar as próprias classes utilitárias do Tailwind (já disponíveis).
+---
 
-## Detalhes técnicos
+### Fase 1 — Fundação + Dashboard (esta iteração)
 
-- Manter todos os imports/hook/handlers atuais (`submit`, `pickFile`, `onClientChange`, Popover de clientes, criação de novo cliente, upload para storage, insert em `documents` e `document_history`, redirecionamento).
-- Header sticky superior atual (`<header class="sticky ...">Novo documento</header>`) será removido — o título passa a viver dentro do card. A rota continua dentro do layout `_authenticated`, então a sidebar permanece.
-- Tooltips continuam apenas em Competência e Data limite via `Tooltip`/`TooltipProvider` já importados.
-- Nenhuma mudança em rotas, queries ou schema.
+1. Adicionar item "Relatórios" na sidebar
+2. Layout `reports.tsx` com sub-navegação em abas
+3. **Dashboard `/reports`**:
+   - 9 KPI cards (enviados, assinados, pendentes, recusados, expirados, taxa, tempo médio, funcionários pendentes, downloads)
+   - Gráfico "Documentos por dia" (últimos 30d) — BarChart
+   - Gráfico "Evolução mensal de assinaturas" — LineChart
+   - Gráfico "Concluídas × Pendentes" — PieChart/Donut
+   - Filtro global de período (7d/30d/90d/custom)
+   - Skeleton loading em todos os blocos
+4. Server function `getReportsDashboard` com agregações
+5. Instalar `recharts`, `@tanstack/react-table`, `jspdf`, `jspdf-autotable`, `xlsx`, `date-fns`
 
-## Fora do escopo
+### Fase 2 — Relatórios detalhados
 
-- Não mexer em outras páginas.
-- Não alterar `whatsappMessage`, `buildWhatsappUrl`, `debug-diagnostics`.
-- Não trocar a fonte atual do app.
+- `/reports/documents` — tabela completa + filtros + export (PDF/XLSX/CSV/Print)
+- `/reports/signers` — ranking de funcionários
+- `/reports/competencias` — agrupamento por competência
+- Pesquisa avançada combinada
+
+### Fase 3 — Auditoria + agendamento
+
+- `/reports/audit` — tabela de `audit_logs` com IP, user-agent, filtros
+- Modal "Agendar relatório" (estrutura UI apenas, salva em `report_schedules` — nova tabela)
+- Refinamentos de tema/dark mode
+
+---
+
+### Design
+
+Inspiração **Linear/Stripe/Power BI**:
+- Densidade alta mas respirável, tipografia com hierarquia clara
+- Paleta já existente (Navy Trust)
+- Cards com borda sutil, sem gradientes exagerados
+- Gráficos com paleta consistente (accent + tons de cinza/azul)
+- Empty states elegantes
+- 100% responsivo (grid colapsa em mobile)
+
+---
+
+### Confirmar antes de eu começar
+
+- Respostas às 3 perguntas acima
+- Ok iniciar pela **Fase 1** e seguir para as próximas após você validar?
