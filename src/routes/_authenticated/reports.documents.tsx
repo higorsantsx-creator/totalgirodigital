@@ -155,29 +155,40 @@ function DocumentsReport() {
       </div>
 
       {/* Filter bar */}
-      <div className="mb-4 rounded-xl border border-border bg-card p-4 shadow-sm">
-        <div className="mb-3 flex items-center gap-2">
-          <Filter className="size-4 text-muted-foreground" />
-          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filtros</span>
+      <div className="mb-4 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-muted/30 shadow-sm">
+        <div className="flex items-center gap-2 border-b border-border/60 bg-background/40 px-4 py-2.5 backdrop-blur">
+          <div className="flex size-7 items-center justify-center rounded-lg bg-accent/10 text-accent">
+            <SlidersHorizontal className="size-3.5" />
+          </div>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Filtros</span>
           {hasFilter && (
-            <button onClick={clearFilters} className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
-              <X className="size-3" /> Limpar
+            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-bold text-accent">
+              {[status !== "todos", empresa !== "todas", funcionario !== "todos", competencia !== "todas"].filter(Boolean).length} ativo(s)
+            </span>
+          )}
+          {hasFilter && (
+            <button
+              onClick={clearFilters}
+              className="ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            >
+              <X className="size-3" /> Limpar filtros
             </button>
           )}
         </div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-          <FilterSelect label="Período" value={period} onChange={(v) => setPeriod(v as PeriodKey)}
+        <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
+          <FilterSelect icon={<CalendarRange className="size-3.5" />} label="Período" value={period} onChange={(v) => setPeriod(v as PeriodKey)}
             options={(Object.keys(PERIOD_LABELS) as PeriodKey[]).map((k) => ({ value: k, label: PERIOD_LABELS[k] }))} />
-          <FilterSelect label="Status" value={status} onChange={setStatus}
-            options={[{ value: "todos", label: "Todos" }, ...STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))]} />
-          <FilterSelect label="Empresa" value={empresa} onChange={setEmpresa}
-            options={[{ value: "todas", label: "Todas" }, ...empresas.map((e) => ({ value: e, label: e }))]} />
-          <FilterSelect label="Funcionário" value={funcionario} onChange={setFuncionario}
-            options={[{ value: "todos", label: "Todos" }, ...funcionarios.map((f) => ({ value: f, label: f }))]} />
-          <FilterSelect label="Competência" value={competencia} onChange={setCompetencia}
-            options={[{ value: "todas", label: "Todas" }, ...competencias.map((c) => ({ value: c, label: c }))]} />
+          <FilterSelect icon={<CircleDot className="size-3.5" />} label="Status" value={status} onChange={setStatus}
+            options={[{ value: "todos", label: "Todos os status" }, ...STATUSES.map((s) => ({ value: s, label: statusLabel(s) }))]} />
+          <FilterSelect icon={<Building2 className="size-3.5" />} label="Empresa" value={empresa} onChange={setEmpresa}
+            options={[{ value: "todas", label: "Todas as empresas" }, ...empresas.map((e) => ({ value: e, label: e }))]} />
+          <FilterSelect icon={<User className="size-3.5" />} label="Funcionário" value={funcionario} onChange={setFuncionario}
+            options={[{ value: "todos", label: "Todos os funcionários" }, ...funcionarios.map((f) => ({ value: f, label: f }))]} />
+          <FilterSelect icon={<CalendarDays className="size-3.5" />} label="Competência" value={competencia} onChange={setCompetencia}
+            options={[{ value: "todas", label: "Todas as competências" }, ...competencias.map((c) => ({ value: c, label: c }))]} />
         </div>
       </div>
+
 
       <div className="print-area">
         <DataTable
