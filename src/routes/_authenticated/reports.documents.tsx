@@ -204,29 +204,42 @@ function DocumentsReport() {
 }
 
 function FilterSelect({
+  icon,
   label,
   value,
   onChange,
   options,
 }: {
+  icon?: React.ReactNode;
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: Array<{ value: string; label: string }>;
 }) {
+  const isDefault = ["todos", "todas", "90d"].includes(value);
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-md border border-border bg-background px-2 py-1.5 text-sm outline-none focus:border-accent focus:ring-4 focus:ring-accent/10"
-      >
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-    </label>
+    <div className="flex flex-col gap-1.5">
+      <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+        {icon}
+        {label}
+      </span>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger
+          className={cn(
+            "h-10 rounded-lg border-border/70 bg-background/80 text-sm shadow-sm transition",
+            "hover:border-accent/40 hover:bg-background focus:ring-2 focus:ring-accent/20",
+            !isDefault && "border-accent/60 bg-accent/5 text-foreground",
+          )}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="max-h-72">
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
