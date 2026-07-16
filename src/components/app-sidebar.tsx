@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { LayoutDashboard, FileText, Send, History, Settings, LogOut, Users } from "lucide-react";
+import { LayoutDashboard, FileText, Send, History, Settings, LogOut, Users, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ const nav = [
   { to: "/documents", label: "Documentos", icon: FileText },
   { to: "/documents/new", label: "Novo envio", icon: Send },
   { to: "/history", label: "Histórico", icon: History },
+  { to: "/reports", label: "Relatórios", icon: BarChart3 },
   { to: "/settings", label: "Configurações", icon: Settings },
 ] as const;
 
