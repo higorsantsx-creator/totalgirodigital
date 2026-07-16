@@ -178,3 +178,10 @@ div[style*="Edit with Lovable"],
   z-index: -9999 !important;
 }
 
+
+@media print {
+  aside, header, nav, button, .no-print { display: none !important; }
+  body { background: white !important; }
+  .print-area, main { padding: 0 !important; box-shadow: none !important; }
+  table { font-size: 10pt !important; }
+}
