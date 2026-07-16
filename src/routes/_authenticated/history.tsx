@@ -107,9 +107,10 @@ function HistoryPage() {
 
       <div className="mx-auto max-w-5xl p-8">
         {/* Hero */}
-        <div className="relative mb-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-accent via-accent to-[oklch(0.22_0.05_265)] p-6 text-accent-foreground shadow-lg">
-          <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-primary/25 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 right-24 size-56 rounded-full bg-white/10 blur-3xl" />
+        <div className="group relative mb-8 overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-accent via-accent to-[oklch(0.22_0.05_265)] p-6 text-accent-foreground shadow-lg transition-all duration-500 ease-out hover:-translate-y-1 hover:shadow-2xl hover:ring-1 hover:ring-primary/30">
+          <div className="pointer-events-none absolute -right-16 -top-16 size-64 rounded-full bg-primary/25 blur-3xl transition-all duration-700 ease-out group-hover:-translate-x-6 group-hover:translate-y-4 group-hover:scale-125 group-hover:bg-primary/40" />
+          <div className="pointer-events-none absolute -bottom-20 right-24 size-56 rounded-full bg-white/10 blur-3xl transition-all duration-700 ease-out group-hover:-translate-x-10 group-hover:-translate-y-6 group-hover:scale-110 group-hover:bg-white/20" />
+          <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 ease-out group-hover:translate-x-full" />
           <div className="relative flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ring-1 ring-white/15 backdrop-blur">
