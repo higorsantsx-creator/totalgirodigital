@@ -22,6 +22,10 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports.index'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
+import { Route as AuthenticatedReportsSignersRouteImport } from './routes/_authenticated/reports.signers'
+import { Route as AuthenticatedReportsDocumentsRouteImport } from './routes/_authenticated/reports.documents'
+import { Route as AuthenticatedReportsCompetenciasRouteImport } from './routes/_authenticated/reports.competencias'
+import { Route as AuthenticatedReportsAuditRouteImport } from './routes/_authenticated/reports.audit'
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
 import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign.$token'
@@ -93,6 +97,30 @@ const AuthenticatedDocumentsIndexRoute =
     path: '/documents/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedReportsSignersRoute =
+  AuthenticatedReportsSignersRouteImport.update({
+    id: '/signers',
+    path: '/signers',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
+const AuthenticatedReportsDocumentsRoute =
+  AuthenticatedReportsDocumentsRouteImport.update({
+    id: '/documents',
+    path: '/documents',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
+const AuthenticatedReportsCompetenciasRoute =
+  AuthenticatedReportsCompetenciasRouteImport.update({
+    id: '/competencias',
+    path: '/competencias',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
+const AuthenticatedReportsAuditRoute =
+  AuthenticatedReportsAuditRouteImport.update({
+    id: '/audit',
+    path: '/audit',
+    getParentRoute: () => AuthenticatedReportsRoute,
+  } as any)
 const AuthenticatedDocumentsNewRoute =
   AuthenticatedDocumentsNewRouteImport.update({
     id: '/documents/new',
@@ -130,6 +158,10 @@ export interface FileRoutesByFullPath {
   '/sign/$token': typeof SignTokenRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/documents/new': typeof AuthenticatedDocumentsNewRoute
+  '/reports/audit': typeof AuthenticatedReportsAuditRoute
+  '/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
+  '/reports/documents': typeof AuthenticatedReportsDocumentsRoute
+  '/reports/signers': typeof AuthenticatedReportsSignersRoute
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
@@ -147,6 +179,10 @@ export interface FileRoutesByTo {
   '/sign/$token': typeof SignTokenRoute
   '/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/documents/new': typeof AuthenticatedDocumentsNewRoute
+  '/reports/audit': typeof AuthenticatedReportsAuditRoute
+  '/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
+  '/reports/documents': typeof AuthenticatedReportsDocumentsRoute
+  '/reports/signers': typeof AuthenticatedReportsSignersRoute
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
@@ -167,6 +203,10 @@ export interface FileRoutesById {
   '/sign/$token': typeof SignTokenRoute
   '/_authenticated/documents/$id': typeof AuthenticatedDocumentsIdRoute
   '/_authenticated/documents/new': typeof AuthenticatedDocumentsNewRoute
+  '/_authenticated/reports/audit': typeof AuthenticatedReportsAuditRoute
+  '/_authenticated/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
+  '/_authenticated/reports/documents': typeof AuthenticatedReportsDocumentsRoute
+  '/_authenticated/reports/signers': typeof AuthenticatedReportsSignersRoute
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
@@ -187,6 +227,10 @@ export interface FileRouteTypes {
     | '/sign/$token'
     | '/documents/$id'
     | '/documents/new'
+    | '/reports/audit'
+    | '/reports/competencias'
+    | '/reports/documents'
+    | '/reports/signers'
     | '/documents/'
     | '/reports/'
     | '/api/public/sign/$token'
@@ -204,6 +248,10 @@ export interface FileRouteTypes {
     | '/sign/$token'
     | '/documents/$id'
     | '/documents/new'
+    | '/reports/audit'
+    | '/reports/competencias'
+    | '/reports/documents'
+    | '/reports/signers'
     | '/documents'
     | '/reports'
     | '/api/public/sign/$token'
@@ -223,6 +271,10 @@ export interface FileRouteTypes {
     | '/sign/$token'
     | '/_authenticated/documents/$id'
     | '/_authenticated/documents/new'
+    | '/_authenticated/reports/audit'
+    | '/_authenticated/reports/competencias'
+    | '/_authenticated/reports/documents'
+    | '/_authenticated/reports/signers'
     | '/_authenticated/documents/'
     | '/_authenticated/reports/'
     | '/api/public/sign/$token'
@@ -332,6 +384,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reports/signers': {
+      id: '/_authenticated/reports/signers'
+      path: '/signers'
+      fullPath: '/reports/signers'
+      preLoaderRoute: typeof AuthenticatedReportsSignersRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
+    '/_authenticated/reports/documents': {
+      id: '/_authenticated/reports/documents'
+      path: '/documents'
+      fullPath: '/reports/documents'
+      preLoaderRoute: typeof AuthenticatedReportsDocumentsRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
+    '/_authenticated/reports/competencias': {
+      id: '/_authenticated/reports/competencias'
+      path: '/competencias'
+      fullPath: '/reports/competencias'
+      preLoaderRoute: typeof AuthenticatedReportsCompetenciasRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
+    '/_authenticated/reports/audit': {
+      id: '/_authenticated/reports/audit'
+      path: '/audit'
+      fullPath: '/reports/audit'
+      preLoaderRoute: typeof AuthenticatedReportsAuditRouteImport
+      parentRoute: typeof AuthenticatedReportsRoute
+    }
     '/_authenticated/documents/new': {
       id: '/_authenticated/documents/new'
       path: '/documents/new'
@@ -364,10 +444,18 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedReportsRouteChildren {
+  AuthenticatedReportsAuditRoute: typeof AuthenticatedReportsAuditRoute
+  AuthenticatedReportsCompetenciasRoute: typeof AuthenticatedReportsCompetenciasRoute
+  AuthenticatedReportsDocumentsRoute: typeof AuthenticatedReportsDocumentsRoute
+  AuthenticatedReportsSignersRoute: typeof AuthenticatedReportsSignersRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
 }
 
 const AuthenticatedReportsRouteChildren: AuthenticatedReportsRouteChildren = {
+  AuthenticatedReportsAuditRoute: AuthenticatedReportsAuditRoute,
+  AuthenticatedReportsCompetenciasRoute: AuthenticatedReportsCompetenciasRoute,
+  AuthenticatedReportsDocumentsRoute: AuthenticatedReportsDocumentsRoute,
+  AuthenticatedReportsSignersRoute: AuthenticatedReportsSignersRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
 }
 
@@ -422,3 +510,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
