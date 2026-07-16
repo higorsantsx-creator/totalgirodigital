@@ -86,7 +86,7 @@ export function whatsappMessage(opts: {
 }) {
   const empresa = opts.empresa || opts.senderName || "Grupo Total Giro";
   const funcionario = opts.recipientName || "funcionário(a)";
-  const competencia = opts.competencia || "-";
+  const competencia = (opts.competencia || "").trim();
   const dataEnvio = formatDateTime(new Date());
   const dataLimite = formatDate(opts.deadline) || "sem prazo definido";
 
@@ -105,5 +105,11 @@ export function whatsappMessage(opts: {
     ? opts.template
     : DEFAULT_WHATSAPP_TEMPLATE);
 
-  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key: string) => vars[key] ?? "");
+  // Blocos condicionais: {{#var}}...{{/var}} — removidos quando a variável estiver vazia.
+  const withBlocks = template.replace(
+    /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
+    (_m, key: string, inner: string) => (vars[key] && vars[key].length > 0 ? inner : ""),
+  );
+
+  return withBlocks.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key: string) => vars[key] ?? "");
 }
