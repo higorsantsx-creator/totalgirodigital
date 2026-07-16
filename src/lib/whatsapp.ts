@@ -27,30 +27,32 @@ function formatDateTime(value: Date) {
   });
 }
 
-/** Modelo padrão usado quando o usuário não personalizou a mensagem. */
+/** Modelo padrão usado quando o usuário não personalizou a mensagem.
+ *  Blocos entre {{#competencia}}...{{/competencia}} são removidos quando a competência não estiver definida. */
 export const DEFAULT_WHATSAPP_TEMPLATE = [
+  "*Seu contracheque está disponível para assinatura*",
+  "",
   "Olá, {{nome_funcionario}}!",
   "",
-  "Seu novo contracheque referente ao período de {{competencia}} já está disponível e aguarda sua assinatura eletrônica.",
+  "Seu novo contracheque{{#competencia}} referente ao período de {{competencia}}{{/competencia}} já está disponível e aguarda sua assinatura eletrônica.",
   "",
   "*Detalhes do documento:*",
   "",
-  "Documento: Contracheque",
-  "Competência: {{competencia}}",
-  "Empresa: {{empresa}}",
-  "Funcionário: {{nome_funcionario}}",
-  "Disponível desde: {{data_envio}}",
-  "Prazo para assinatura: {{data_limite}}",
+  "📄 Documento: Contracheque",
+  "{{#competencia}}📅 Competência: {{competencia}}\n{{/competencia}}🏢 Empresa: {{empresa}}",
+  "👤 Funcionário: {{nome_funcionario}}",
+  "🕒 Disponível desde: {{data_envio}}",
+  "⏳ Prazo para assinatura: {{data_limite}}",
   "",
   "Para visualizar e assinar o documento, clique no link abaixo:",
   "",
   "👉 *Visualizar e Assinar Contracheque:* {{link}}",
   "",
-  "A assinatura é rápida, segura e pode ser realizada pelo computador, tablet ou celular.",
+  "A assinatura é rápida, segura e pode ser feita pelo computador, tablet ou celular.",
   "",
   "Após concluir a assinatura, uma cópia do documento ficará disponível para download e poderá ser enviada automaticamente para o seu e-mail.",
   "",
-  "*Importante:* Este link é pessoal e intransferível. Não compartilhe com outras pessoas. Caso o prazo de assinatura expire, entre em contato com o setor de Recursos Humanos.",
+  "⚠️ *Importante:* Este link é pessoal e intransferível. Não compartilhe com outras pessoas. Caso o prazo de assinatura expire, entre em contato com o setor de Recursos Humanos.",
   "",
   "Se tiver qualquer dúvida ou encontrar algum problema durante a assinatura, procure o RH da empresa.",
   "",
@@ -84,7 +86,7 @@ export function whatsappMessage(opts: {
 }) {
   const empresa = opts.empresa || opts.senderName || "Grupo Total Giro";
   const funcionario = opts.recipientName || "funcionário(a)";
-  const competencia = opts.competencia || "-";
+  const competencia = (opts.competencia || "").trim();
   const dataEnvio = formatDateTime(new Date());
   const dataLimite = formatDate(opts.deadline) || "sem prazo definido";
 
@@ -103,5 +105,11 @@ export function whatsappMessage(opts: {
     ? opts.template
     : DEFAULT_WHATSAPP_TEMPLATE);
 
-  return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key: string) => vars[key] ?? "");
+  // Blocos condicionais: {{#var}}...{{/var}} — removidos quando a variável estiver vazia.
+  const withBlocks = template.replace(
+    /\{\{#(\w+)\}\}([\s\S]*?)\{\{\/\1\}\}/g,
+    (_m, key: string, inner: string) => (vars[key] && vars[key].length > 0 ? inner : ""),
+  );
+
+  return withBlocks.replace(/\{\{\s*(\w+)\s*\}\}/g, (_m, key: string) => vars[key] ?? "");
 }
