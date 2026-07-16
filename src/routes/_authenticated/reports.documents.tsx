@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ExternalLink, Filter, X } from "lucide-react";
+import { CalendarRange, Building2, User, CalendarDays, CircleDot, ExternalLink, SlidersHorizontal, X } from "lucide-react";
 
 import { fetchDocuments, PERIOD_LABELS, statusLabel, type DocumentRow, type PeriodKey } from "@/lib/reports";
 import { DataTable } from "@/components/reports/data-table";
@@ -10,6 +10,7 @@ import { ExportMenu } from "@/components/reports/export-menu";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { ExportColumn } from "@/lib/export";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const Route = createFileRoute("/_authenticated/reports/documents")({
   component: DocumentsReport,
