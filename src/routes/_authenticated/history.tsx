@@ -147,8 +147,8 @@ function HistoryPage() {
         </div>
 
         {/* Toolbar */}
-        <div className="mb-4 flex flex-col gap-3 rounded-xl border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:max-w-xs">
+        <div className="mb-4 space-y-3 rounded-xl border border-border bg-card p-3 shadow-sm">
+          <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={search}
@@ -157,28 +157,42 @@ function HistoryPage() {
               className="w-full rounded-lg border border-border bg-background py-2 pl-9 pr-3 text-sm outline-none placeholder:text-muted-foreground focus:border-accent focus:ring-4 focus:ring-accent/10"
             />
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          {/* Segmented control — 6 equal cells em uma única linha */}
+          <div
+            role="tablist"
+            className="grid grid-cols-3 gap-1 rounded-lg bg-secondary p-1 sm:grid-cols-6"
+          >
             {FILTERS.map((f) => {
               const count = f.key === "todos" ? history.length : stats[f.key] ?? 0;
               const active = filter === f.key;
               return (
                 <button
                   key={f.key}
+                  role="tab"
+                  aria-selected={active}
                   onClick={() => setFilter(f.key)}
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                    "inline-flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-all",
                     active
-                      ? "border-accent bg-accent text-accent-foreground"
-                      : "border-border bg-background text-muted-foreground hover:text-foreground"
+                      ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {f.label}
-                  <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-semibold", active ? "bg-white/15" : "bg-secondary text-foreground/70")}>{count}</span>
+                  <span className="truncate">{f.label}</span>
+                  <span
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                      active ? "bg-accent text-accent-foreground" : "bg-background text-foreground/60"
+                    )}
+                  >
+                    {count}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
+
 
         {/* Timeline */}
         {isLoading && (
