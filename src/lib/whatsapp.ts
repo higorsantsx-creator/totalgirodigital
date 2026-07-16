@@ -27,30 +27,32 @@ function formatDateTime(value: Date) {
   });
 }
 
-/** Modelo padrão usado quando o usuário não personalizou a mensagem. */
+/** Modelo padrão usado quando o usuário não personalizou a mensagem.
+ *  Blocos entre {{#competencia}}...{{/competencia}} são removidos quando a competência não estiver definida. */
 export const DEFAULT_WHATSAPP_TEMPLATE = [
+  "*Seu contracheque está disponível para assinatura*",
+  "",
   "Olá, {{nome_funcionario}}!",
   "",
-  "Seu novo contracheque referente ao período de {{competencia}} já está disponível e aguarda sua assinatura eletrônica.",
+  "Seu novo contracheque{{#competencia}} referente ao período de {{competencia}}{{/competencia}} já está disponível e aguarda sua assinatura eletrônica.",
   "",
   "*Detalhes do documento:*",
   "",
-  "Documento: Contracheque",
-  "Competência: {{competencia}}",
-  "Empresa: {{empresa}}",
-  "Funcionário: {{nome_funcionario}}",
-  "Disponível desde: {{data_envio}}",
-  "Prazo para assinatura: {{data_limite}}",
+  "📄 Documento: Contracheque",
+  "{{#competencia}}📅 Competência: {{competencia}}\n{{/competencia}}🏢 Empresa: {{empresa}}",
+  "👤 Funcionário: {{nome_funcionario}}",
+  "🕒 Disponível desde: {{data_envio}}",
+  "⏳ Prazo para assinatura: {{data_limite}}",
   "",
   "Para visualizar e assinar o documento, clique no link abaixo:",
   "",
   "👉 *Visualizar e Assinar Contracheque:* {{link}}",
   "",
-  "A assinatura é rápida, segura e pode ser realizada pelo computador, tablet ou celular.",
+  "A assinatura é rápida, segura e pode ser feita pelo computador, tablet ou celular.",
   "",
   "Após concluir a assinatura, uma cópia do documento ficará disponível para download e poderá ser enviada automaticamente para o seu e-mail.",
   "",
-  "*Importante:* Este link é pessoal e intransferível. Não compartilhe com outras pessoas. Caso o prazo de assinatura expire, entre em contato com o setor de Recursos Humanos.",
+  "⚠️ *Importante:* Este link é pessoal e intransferível. Não compartilhe com outras pessoas. Caso o prazo de assinatura expire, entre em contato com o setor de Recursos Humanos.",
   "",
   "Se tiver qualquer dúvida ou encontrar algum problema durante a assinatura, procure o RH da empresa.",
   "",
