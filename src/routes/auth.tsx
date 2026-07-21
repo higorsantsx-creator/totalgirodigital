@@ -28,6 +28,7 @@ function AuthPage() {
   const unlock = useServerFn(unlockGate);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const afterAuth = () => navigate({ to: redirect ?? "/dashboard" });
 
