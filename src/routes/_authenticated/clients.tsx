@@ -183,6 +183,7 @@ function ClientsPage() {
               <tr className="bg-secondary/50 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">Empresa</th>
+                <th className="px-6 py-3">Cargo</th>
                 <th className="px-6 py-3">WhatsApp</th>
                 <th className="px-6 py-3">CPF/CNPJ</th>
                 <th className="px-6 py-3 text-right">Ações</th>
