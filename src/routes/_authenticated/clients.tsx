@@ -202,6 +202,7 @@ function ClientsPage() {
                   <tr key={c.id} className="transition-colors hover:bg-secondary/40">
                     <td className="px-6 py-4 font-medium">{c.name}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.company ?? "—"}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{c.role ?? "—"}</td>
                     <td className="px-6 py-4">
                       {c.phone ? (
                         <span className="inline-flex items-center gap-1.5">
