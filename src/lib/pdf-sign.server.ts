@@ -24,6 +24,10 @@ export async function embedSignatureIntoPdf(
     { xLine: 550.7, yBottom: 227.04, yTop: 367.56 }, // bottom payslip
   ];
 
+  // Vertical offset applied to lift the signature slightly above the demarcated line
+  // so descenders (letters like g, j, p, y) don't cross into the printed line.
+  const LIFT_ABOVE_LINE = 18;
+
   for (const slot of slots) {
     const lineLen = slot.yTop - slot.yBottom;
     const targetLen = lineLen * 0.9;
@@ -31,7 +35,9 @@ export async function embedSignatureIntoPdf(
     const drawW = pngImage.width * scale;
     const drawH = Math.min(pngImage.height * scale, 30);
     const midY = (slot.yBottom + slot.yTop) / 2;
-    const anchorX = slot.xLine + drawH / 2;
+    // rotate 90°: image local +x -> page +y, image local +y -> page -x.
+    // Shifting anchorX to a smaller value moves the rendered signature to the LEFT of the line (i.e. above it on the rotated axis).
+    const anchorX = slot.xLine + drawH / 2 - LIFT_ABOVE_LINE;
     const anchorY = midY - drawW / 2;
     firstPage.drawImage(pngImage, {
       x: anchorX,
