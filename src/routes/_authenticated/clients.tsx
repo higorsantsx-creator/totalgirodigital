@@ -73,10 +73,10 @@ function ClientsPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Excluir este cliente?")) return;
+    if (!confirm("Excluir este funcionário?")) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
     if (error) return toast.error(error.message);
-    toast.success("Cliente excluído");
+    toast.success("Funcionário excluído");
     qc.invalidateQueries({ queryKey: ["clients"] });
   };
 
@@ -96,11 +96,11 @@ function ClientsPage() {
     if (editing) {
       const { error } = await supabase.from("clients").update(payload).eq("id", editing.id);
       if (error) return toast.error(error.message);
-      toast.success("Cliente atualizado");
+      toast.success("Funcionário atualizado");
     } else {
       const { error } = await supabase.from("clients").insert({ ...payload, owner_id: user.id });
       if (error) return toast.error(error.message);
-      toast.success("Cliente cadastrado");
+      toast.success("Funcionário cadastrado");
     }
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["clients"] });
@@ -109,16 +109,16 @@ function ClientsPage() {
   return (
     <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-8 backdrop-blur-sm">
-        <h1 className="font-display text-lg font-semibold">Clientes</h1>
+        <h1 className="font-display text-lg font-semibold">Funcionários</h1>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button onClick={openNew}>
-              <Plus className="mr-1.5 size-4" /> Novo cliente
+              <Plus className="mr-1.5 size-4" /> Novo funcionário
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editing ? "Editar cliente" : "Novo cliente"}</DialogTitle>
+              <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
             </DialogHeader>
             <form
               onSubmit={(e) => {
@@ -226,7 +226,7 @@ function ClientsPage() {
               {!isLoading && list.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-16 text-center text-muted-foreground">
-                    Nenhum cliente cadastrado ainda.
+                    Nenhum funcionário cadastrado ainda.
                   </td>
                 </tr>
               )}

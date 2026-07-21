@@ -9,7 +9,7 @@ import logoAsset from "@/assets/total-giro-logo.png.asset.json";
 
 const nav = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/clients", label: "Clientes", icon: Users },
+  { to: "/clients", label: "Funcionários", icon: Users },
   { to: "/documents", label: "Documentos", icon: FileText },
   { to: "/documents/new", label: "Novo envio", icon: Send },
   { to: "/history", label: "Histórico", icon: History },
