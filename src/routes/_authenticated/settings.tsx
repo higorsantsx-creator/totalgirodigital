@@ -47,8 +47,15 @@ function SettingsPage() {
     if (!user) return toast.error("Sessão ainda não carregada.");
     setLoading(true);
     const { error } = await supabase.from("profiles").update({ full_name: fullName }).eq("id", user.id);
+    if (error) {
+      setLoading(false);
+      return toast.error(error.message);
+    }
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: fullName, name: fullName },
+    });
     setLoading(false);
-    if (error) return toast.error(error.message);
+    if (authError) return toast.error(authError.message);
     toast.success("Perfil atualizado");
   };
 
