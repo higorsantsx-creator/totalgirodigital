@@ -141,6 +141,10 @@ function ClientsPage() {
                   <Input id="company" name="company" defaultValue={editing?.company ?? ""} />
                 </div>
                 <div className="space-y-1.5">
+                  <Label htmlFor="role">Cargo</Label>
+                  <Input id="role" name="role" placeholder="Ex.: Motorista, Analista" defaultValue={editing?.role ?? ""} />
+                </div>
+                <div className="space-y-1.5">
                   <Label htmlFor="document">CPF/CNPJ</Label>
                   <Input id="document" name="document" defaultValue={editing?.document ?? ""} />
                 </div>
