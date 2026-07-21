@@ -26,6 +26,7 @@ type Client = {
   id: string;
   name: string;
   company: string | null;
+  role: string | null;
   document: string | null;
   email: string | null;
   phone: string | null;
