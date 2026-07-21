@@ -26,6 +26,7 @@ type Client = {
   id: string;
   name: string;
   company: string | null;
+  role: string | null;
   document: string | null;
   email: string | null;
   phone: string | null;
@@ -44,7 +45,7 @@ function ClientsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, name, company, document, email, phone, notes")
+        .select("id, name, company, role, document, email, phone, notes")
         .order("name");
       if (error) throw error;
       return data as Client[];
@@ -84,6 +85,7 @@ function ClientsPage() {
     const payload = {
       name: String(form.get("name") ?? "").trim(),
       company: (String(form.get("company") ?? "").trim() || null),
+      role: (String(form.get("role") ?? "").trim() || null),
       document: (String(form.get("document") ?? "").trim() || null),
       email: (String(form.get("email") ?? "").trim() || null),
       phone: (String(form.get("phone") ?? "").trim() || null),
@@ -139,6 +141,10 @@ function ClientsPage() {
                   <Input id="company" name="company" defaultValue={editing?.company ?? ""} />
                 </div>
                 <div className="space-y-1.5">
+                  <Label htmlFor="role">Cargo</Label>
+                  <Input id="role" name="role" placeholder="Ex.: Motorista, Analista" defaultValue={editing?.role ?? ""} />
+                </div>
+                <div className="space-y-1.5">
                   <Label htmlFor="document">CPF/CNPJ</Label>
                   <Input id="document" name="document" defaultValue={editing?.document ?? ""} />
                 </div>
@@ -177,6 +183,7 @@ function ClientsPage() {
               <tr className="bg-secondary/50 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">Empresa</th>
+                <th className="px-6 py-3">Cargo</th>
                 <th className="px-6 py-3">WhatsApp</th>
                 <th className="px-6 py-3">CPF/CNPJ</th>
                 <th className="px-6 py-3 text-right">Ações</th>
@@ -185,7 +192,7 @@ function ClientsPage() {
             <tbody className="divide-y divide-border">
               {isLoading && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     Carregando...
                   </td>
                 </tr>
@@ -195,6 +202,7 @@ function ClientsPage() {
                   <tr key={c.id} className="transition-colors hover:bg-secondary/40">
                     <td className="px-6 py-4 font-medium">{c.name}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.company ?? "—"}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{c.role ?? "—"}</td>
                     <td className="px-6 py-4">
                       {c.phone ? (
                         <span className="inline-flex items-center gap-1.5">
@@ -217,7 +225,7 @@ function ClientsPage() {
                 ))}
               {!isLoading && list.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-16 text-center text-muted-foreground">
+                  <td colSpan={6} className="px-6 py-16 text-center text-muted-foreground">
                     Nenhum cliente cadastrado ainda.
                   </td>
                 </tr>
