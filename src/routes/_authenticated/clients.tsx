@@ -45,7 +45,7 @@ function ClientsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, name, company, document, email, phone, notes")
+        .select("id, name, company, role, document, email, phone, notes")
         .order("name");
       if (error) throw error;
       return data as Client[];
