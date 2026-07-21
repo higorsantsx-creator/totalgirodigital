@@ -85,6 +85,7 @@ function ClientsPage() {
     const payload = {
       name: String(form.get("name") ?? "").trim(),
       company: (String(form.get("company") ?? "").trim() || null),
+      role: (String(form.get("role") ?? "").trim() || null),
       document: (String(form.get("document") ?? "").trim() || null),
       email: (String(form.get("email") ?? "").trim() || null),
       phone: (String(form.get("phone") ?? "").trim() || null),
