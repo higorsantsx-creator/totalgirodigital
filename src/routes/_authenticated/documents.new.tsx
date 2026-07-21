@@ -104,7 +104,7 @@ function NewDocumentPage() {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!file) return toast.error("Selecione um PDF antes de enviar.");
-    if (!recipientPhone.trim()) return toast.error("Informe o WhatsApp do cliente.");
+    if (!recipientPhone.trim()) return toast.error("Informe o WhatsApp do funcionário.");
     if (authLoading) return toast.error("A sessão ainda está carregando.");
     if (!user) return toast.error("Faça login novamente para enviar documentos.");
     setLoading(true);
@@ -406,13 +406,13 @@ function NewDocumentPage() {
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <Label className={LABEL_CLASS}>Cliente</Label>
+                      <Label className={LABEL_CLASS}>Funcionário</Label>
                       <Link
                         to="/clients"
                         className="text-xs font-medium hover:underline"
                         style={{ color: NAVY_HOVER }}
                       >
-                        Gerenciar clientes
+                        Gerenciar funcionários
                       </Link>
                     </div>
 
@@ -456,7 +456,7 @@ function NewDocumentPage() {
                                   </span>
                                 </span>
                               ) : (
-                                <span className="text-slate-400">Selecionar cliente</span>
+                                <span className="text-slate-400">Selecionar funcionário</span>
                               )}
                               <ChevronsUpDown className="size-4 shrink-0 text-slate-400" />
                             </button>
@@ -471,14 +471,14 @@ function NewDocumentPage() {
                                 autoFocus
                                 value={clientSearch}
                                 onChange={(e) => setClientSearch(e.target.value)}
-                                placeholder="Buscar cliente..."
+                                placeholder="Buscar funcionário..."
                                 className="h-7 flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
                               />
                             </div>
                             <div className="max-h-64 overflow-y-auto p-1">
                               {filtered.length === 0 ? (
                                 <p className="px-3 py-6 text-center text-xs text-slate-400">
-                                  {clientsLoading ? "Carregando..." : "Nenhum cliente encontrado"}
+                                  {clientsLoading ? "Carregando..." : "Nenhum funcionário encontrado"}
                                 </p>
                               ) : (
                                 filtered.map((c) => {
@@ -537,7 +537,7 @@ function NewDocumentPage() {
                     })()}
                     {clientsError && (
                       <p className="text-xs text-red-600">
-                        Não foi possível carregar os clientes. Tente novamente.
+                        Não foi possível carregar os funcionários. Tente novamente.
                       </p>
                     )}
                   </div>
@@ -601,7 +601,7 @@ function NewDocumentPage() {
                               </button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
-                              Período de referência do documento. Aparece na mensagem enviada ao cliente.
+                              Período de referência do documento. Aparece na mensagem enviada ao funcionário.
                             </TooltipContent>
                           </Tooltip>
                         </div>
@@ -630,7 +630,7 @@ function NewDocumentPage() {
                               </button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-xs">
-                              Prazo final para o cliente assinar. Deixe em branco se não houver prazo.
+                              Prazo final para o funcionário assinar. Deixe em branco se não houver prazo.
                             </TooltipContent>
                           </Tooltip>
                         </div>
