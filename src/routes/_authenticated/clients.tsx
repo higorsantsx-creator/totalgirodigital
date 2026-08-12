@@ -147,12 +147,16 @@ function ClientsPage() {
     <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-8 backdrop-blur-sm">
         <h1 className="font-display text-lg font-semibold">Funcionários</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNew}>
-              <Plus className="mr-1.5 size-4" /> Novo funcionário
-            </Button>
-          </DialogTrigger>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={exportToPDF} disabled={isLoading || list.length === 0}>
+            <Download className="mr-1.5 size-4" /> Exportar PDF
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openNew}>
+                <Plus className="mr-1.5 size-4" /> Novo funcionário
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
