@@ -150,9 +150,13 @@ function ClientsPage() {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            onClick={exportToPDF}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              exportToPDF();
+            }}
             disabled={isLoading || list.length === 0}
-            className="bg-white hover:bg-slate-50 border-slate-200 text-slate-600 font-medium"
+            className="bg-white hover:bg-slate-50 border-slate-200 text-slate-600 font-medium relative z-50"
           >
             <Download className="mr-2 size-4 text-slate-400" /> Exportar PDF
           </Button>
@@ -163,59 +167,60 @@ function ClientsPage() {
               </Button>
             </DialogTrigger>
 
-            <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
-            </DialogHeader>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                save(new FormData(e.currentTarget));
-              }}
-              className="space-y-4"
-            >
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="name">Nome *</Label>
-                  <Input id="name" name="name" required defaultValue={editing?.name ?? ""} />
+            <DialogContent className="z-[100]">
+              <DialogHeader>
+                <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
+              </DialogHeader>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  save(new FormData(e.currentTarget));
+                }}
+                className="space-y-4"
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="col-span-2 space-y-1.5">
+                    <Label htmlFor="name">Nome *</Label>
+                    <Input id="name" name="name" required defaultValue={editing?.name ?? ""} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone">WhatsApp *</Label>
+                    <Input id="phone" name="phone" placeholder="(11) 99999-9999" defaultValue={editing?.phone ?? ""} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="company">Empresa</Label>
+                    <Input id="company" name="company" defaultValue={editing?.company ?? ""} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="role">Cargo</Label>
+                    <Input id="role" name="role" placeholder="Ex.: Motorista, Analista" defaultValue={editing?.role ?? ""} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="unit">Unidade/Categoria</Label>
+                    <Input id="unit" name="unit" placeholder="Ex.: Matriz, Setor A" defaultValue={editing?.unit ?? ""} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="document">CPF/CNPJ</Label>
+                    <Input id="document" name="document" defaultValue={editing?.document ?? ""} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input id="email" name="email" type="email" defaultValue={editing?.email ?? ""} />
+                  </div>
+                  <div className="col-span-2 space-y-1.5">
+                    <Label htmlFor="notes">Observações</Label>
+                    <Textarea id="notes" name="notes" rows={2} defaultValue={editing?.notes ?? ""} />
+                  </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="phone">WhatsApp *</Label>
-                  <Input id="phone" name="phone" placeholder="(11) 99999-9999" defaultValue={editing?.phone ?? ""} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="company">Empresa</Label>
-                  <Input id="company" name="company" defaultValue={editing?.company ?? ""} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="role">Cargo</Label>
-                  <Input id="role" name="role" placeholder="Ex.: Motorista, Analista" defaultValue={editing?.role ?? ""} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="unit">Unidade/Categoria</Label>
-                  <Input id="unit" name="unit" placeholder="Ex.: Matriz, Setor A" defaultValue={editing?.unit ?? ""} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="document">CPF/CNPJ</Label>
-                  <Input id="document" name="document" defaultValue={editing?.document ?? ""} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="email">E-mail</Label>
-                  <Input id="email" name="email" type="email" defaultValue={editing?.email ?? ""} />
-                </div>
-                <div className="col-span-2 space-y-1.5">
-                  <Label htmlFor="notes">Observações</Label>
-                  <Textarea id="notes" name="notes" rows={2} defaultValue={editing?.notes ?? ""} />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">{editing ? "Salvar" : "Cadastrar"}</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-    </header>
+                <DialogFooter>
+                  <Button type="submit">{editing ? "Salvar" : "Cadastrar"}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </header>
+
 
       <div className="mx-auto max-w-7xl space-y-6 p-8">
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
