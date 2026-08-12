@@ -15,7 +15,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2, Phone } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Phone, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clients")({
@@ -73,6 +75,39 @@ function ClientsPage() {
     setOpen(true);
   };
 
+  const exportToPDF = () => {
+    if (list.length === 0) return toast.error("Nenhum dado para exportar");
+    
+    const doc = new jsPDF();
+    const tableColumn = ["Nome", "Empresa", "Cargo", "Unidade", "WhatsApp", "CPF/CNPJ"];
+    const tableRows = list.map(c => [
+      c.name,
+      c.company ?? "—",
+      c.role ?? "—",
+      c.unit ?? "—",
+      c.phone ?? "—",
+      c.document ?? "—"
+    ]);
+
+    doc.setFontSize(18);
+    doc.text("Relatório de Funcionários", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 35,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { fontSize: 9 }
+    });
+
+    doc.save("funcionarios.pdf");
+    toast.success("PDF gerado com sucesso");
+  };
+
   const remove = async (id: string) => {
     if (!confirm("Excluir este funcionário?")) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
@@ -112,13 +147,17 @@ function ClientsPage() {
     <>
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-8 backdrop-blur-sm">
         <h1 className="font-display text-lg font-semibold">Funcionários</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={openNew}>
-              <Plus className="mr-1.5 size-4" /> Novo funcionário
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" onClick={exportToPDF} disabled={isLoading || list.length === 0}>
+            <Download className="mr-1.5 size-4" /> Exportar PDF
+          </Button>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openNew}>
+                <Plus className="mr-1.5 size-4" /> Novo funcionário
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
             <DialogHeader>
               <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
             </DialogHeader>
@@ -169,7 +208,8 @@ function ClientsPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </header>
+      </div>
+    </header>
 
       <div className="mx-auto max-w-7xl space-y-6 p-8">
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
