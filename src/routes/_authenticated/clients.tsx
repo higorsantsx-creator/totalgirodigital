@@ -75,6 +75,39 @@ function ClientsPage() {
     setOpen(true);
   };
 
+  const exportToPDF = () => {
+    if (list.length === 0) return toast.error("Nenhum dado para exportar");
+    
+    const doc = new jsPDF();
+    const tableColumn = ["Nome", "Empresa", "Cargo", "Unidade", "WhatsApp", "CPF/CNPJ"];
+    const tableRows = list.map(c => [
+      c.name,
+      c.company ?? "—",
+      c.role ?? "—",
+      c.unit ?? "—",
+      c.phone ?? "—",
+      c.document ?? "—"
+    ]);
+
+    doc.setFontSize(18);
+    doc.text("Relatório de Funcionários", 14, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 30);
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 35,
+      theme: 'grid',
+      headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+      styles: { fontSize: 9 }
+    });
+
+    doc.save("funcionarios.pdf");
+    toast.success("PDF gerado com sucesso");
+  };
+
   const remove = async (id: string) => {
     if (!confirm("Excluir este funcionário?")) return;
     const { error } = await supabase.from("clients").delete().eq("id", id);
