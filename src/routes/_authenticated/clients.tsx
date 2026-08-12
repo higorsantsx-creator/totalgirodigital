@@ -27,6 +27,7 @@ type Client = {
   name: string;
   company: string | null;
   role: string | null;
+  unit: string | null;
   document: string | null;
   email: string | null;
   phone: string | null;
@@ -45,7 +46,7 @@ function ClientsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, name, company, role, document, email, phone, notes")
+        .select("id, name, company, role, unit, document, email, phone, notes")
         .order("name");
       if (error) throw error;
       return data as Client[];
@@ -86,6 +87,7 @@ function ClientsPage() {
       name: String(form.get("name") ?? "").trim(),
       company: (String(form.get("company") ?? "").trim() || null),
       role: (String(form.get("role") ?? "").trim() || null),
+      unit: (String(form.get("unit") ?? "").trim() || null),
       document: (String(form.get("document") ?? "").trim() || null),
       email: (String(form.get("email") ?? "").trim() || null),
       phone: (String(form.get("phone") ?? "").trim() || null),
@@ -145,6 +147,10 @@ function ClientsPage() {
                   <Input id="role" name="role" placeholder="Ex.: Motorista, Analista" defaultValue={editing?.role ?? ""} />
                 </div>
                 <div className="space-y-1.5">
+                  <Label htmlFor="unit">Unidade/Categoria</Label>
+                  <Input id="unit" name="unit" placeholder="Ex.: Matriz, Setor A" defaultValue={editing?.unit ?? ""} />
+                </div>
+                <div className="space-y-1.5">
                   <Label htmlFor="document">CPF/CNPJ</Label>
                   <Input id="document" name="document" defaultValue={editing?.document ?? ""} />
                 </div>
@@ -184,6 +190,7 @@ function ClientsPage() {
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">Empresa</th>
                 <th className="px-6 py-3">Cargo</th>
+                <th className="px-6 py-3">Unidade</th>
                 <th className="px-6 py-3">WhatsApp</th>
                 <th className="px-6 py-3">CPF/CNPJ</th>
                 <th className="px-6 py-3 text-right">Ações</th>
@@ -203,6 +210,7 @@ function ClientsPage() {
                     <td className="px-6 py-4 font-medium">{c.name}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.company ?? "—"}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.role ?? "—"}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{c.unit ?? "—"}</td>
                     <td className="px-6 py-4">
                       {c.phone ? (
                         <span className="inline-flex items-center gap-1.5">
