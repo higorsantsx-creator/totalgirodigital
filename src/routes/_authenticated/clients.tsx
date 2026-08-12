@@ -157,7 +157,7 @@ function ClientsPage() {
                 <Plus className="mr-1.5 size-4" /> Novo funcionário
               </Button>
             </DialogTrigger>
-          <DialogContent>
+            <DialogContent>
             <DialogHeader>
               <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
             </DialogHeader>
