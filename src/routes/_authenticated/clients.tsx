@@ -15,7 +15,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2, Phone } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Phone, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clients")({
