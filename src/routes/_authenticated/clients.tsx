@@ -148,15 +148,21 @@ function ClientsPage() {
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-8 backdrop-blur-sm">
         <h1 className="font-display text-lg font-semibold">Funcionários</h1>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={exportToPDF} disabled={isLoading || list.length === 0}>
-            <Download className="mr-1.5 size-4" /> Exportar PDF
+          <Button
+            variant="outline"
+            onClick={exportToPDF}
+            disabled={isLoading || list.length === 0}
+            className="bg-white hover:bg-slate-50 border-slate-200 text-slate-600 font-medium"
+          >
+            <Download className="mr-2 size-4 text-slate-400" /> Exportar PDF
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openNew}>
-                <Plus className="mr-1.5 size-4" /> Novo funcionário
+              <Button onClick={openNew} className="bg-[#E30613] hover:bg-[#C20510] text-white font-semibold">
+                <Plus className="mr-2 size-4" /> Novo funcionário
               </Button>
             </DialogTrigger>
+
             <DialogContent>
             <DialogHeader>
               <DialogTitle>{editing ? "Editar funcionário" : "Novo funcionário"}</DialogTitle>
