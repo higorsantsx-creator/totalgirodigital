@@ -40,6 +40,7 @@ function ClientsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
+  const [selectedUnit, setSelectedUnit] = useState("all");
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
 
@@ -55,14 +56,21 @@ function ClientsPage() {
     },
   });
 
+  const units = Array.from(new Set((clients ?? []).map(c => c.unit).filter(Boolean))).sort() as string[];
+
   const list = (clients ?? []).filter((c) => {
+    const matchesUnit = selectedUnit === "all" || c.unit === selectedUnit;
+    if (!matchesUnit) return false;
+
     if (!q) return true;
     const s = q.toLowerCase();
     return (
       c.name.toLowerCase().includes(s) ||
       (c.company ?? "").toLowerCase().includes(s) ||
       (c.phone ?? "").toLowerCase().includes(s) ||
-      (c.email ?? "").toLowerCase().includes(s)
+      (c.email ?? "").toLowerCase().includes(s) ||
+      (c.unit ?? "").toLowerCase().includes(s) ||
+      (c.role ?? "").toLowerCase().includes(s)
     );
   });
 
@@ -224,15 +232,34 @@ function ClientsPage() {
 
       <div className="mx-auto max-w-7xl space-y-6 p-8">
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-          <div className="border-b border-border p-4">
+          <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Buscar por nome, empresa, telefone..."
-                className="w-80 pl-9"
+                placeholder="Buscar por nome, cargo, unidade..."
+                className="w-full pl-9 sm:w-80"
               />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Label htmlFor="unit-filter" className="hidden text-xs font-medium text-muted-foreground sm:block">
+                Filtrar por Unidade:
+              </Label>
+              <select
+                id="unit-filter"
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-48"
+              >
+                <option value="all">Todas as Unidades</option>
+                {units.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <table className="w-full text-left text-sm">
