@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2, Phone, Download, Filter, X } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Phone, Download } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -232,51 +232,34 @@ function ClientsPage() {
 
       <div className="mx-auto max-w-7xl space-y-6 p-8">
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-          <div className="flex flex-col gap-4 border-b border-border p-5 sm:flex-row sm:items-center sm:justify-between bg-muted/30">
-            <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="relative flex-1 max-w-md">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/70" />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar por nome, cargo ou WhatsApp..."
-                  className="w-full pl-9 bg-background shadow-none border-border/60 focus:border-primary/50"
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/60 bg-background shadow-sm">
-                  <Filter className="size-3.5 text-muted-foreground" />
-                  <select
-                    id="unit-filter"
-                    value={selectedUnit}
-                    onChange={(e) => setSelectedUnit(e.target.value)}
-                    className="bg-transparent text-sm font-medium focus:outline-none pr-6 cursor-pointer"
-                  >
-                    <option value="all">Todas as Unidades</option>
-                    {units.map((u) => (
-                      <option key={u} value={u}>
-                        {u}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {(q || selectedUnit !== "all") && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => { setQ(""); setSelectedUnit("all"); }}
-                    className="text-xs text-muted-foreground hover:text-foreground h-8 px-2"
-                  >
-                    <X className="size-3 mr-1" /> Limpar
-                  </Button>
-                )}
-              </div>
+          <div className="flex flex-col gap-4 border-b border-border p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Buscar por nome, cargo, unidade..."
+                className="w-full pl-9 sm:w-80"
+              />
             </div>
 
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">{list.length}</span> funcionários
+            <div className="flex items-center gap-2">
+              <Label htmlFor="unit-filter" className="hidden text-xs font-medium text-muted-foreground sm:block">
+                Filtrar por Unidade:
+              </Label>
+              <select
+                id="unit-filter"
+                value={selectedUnit}
+                onChange={(e) => setSelectedUnit(e.target.value)}
+                className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-48"
+              >
+                <option value="all">Todas as Unidades</option>
+                {units.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           <table className="w-full text-left text-sm">
