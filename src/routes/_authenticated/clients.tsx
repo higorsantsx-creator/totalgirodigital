@@ -208,7 +208,8 @@ function ClientsPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </header>
+      </div>
+    </header>
 
       <div className="mx-auto max-w-7xl space-y-6 p-8">
         <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
