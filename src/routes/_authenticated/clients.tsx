@@ -79,14 +79,11 @@ function ClientsPage() {
     if (list.length === 0) return toast.error("Nenhum dado para exportar");
     
     const doc = new jsPDF();
-    const tableColumn = ["Nome", "Empresa", "Cargo", "Unidade", "WhatsApp", "CPF/CNPJ"];
+    const tableColumn = ["Unidade", "Nome", "WhatsApp"];
     const tableRows = list.map(c => [
-      c.name,
-      c.company ?? "—",
-      c.role ?? "—",
       c.unit ?? "—",
-      c.phone ?? "—",
-      c.document ?? "—"
+      c.name,
+      c.phone ?? "—"
     ]);
 
     doc.setFontSize(18);
