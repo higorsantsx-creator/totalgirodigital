@@ -1,25 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
+
 
 type DocData = {
   id: string;
   name: string;
   status: DocStatus;
   recipient_name: string;
+  recipient_id: string | null;
   message: string | null;
   deadline: string | null;
   sender_name: string;
   pdf_url: string | null;
+  facial_status: string | null;
 };
+
 
 export const Route = createFileRoute("/sign/$token")({
   ssr: false,
@@ -42,6 +46,13 @@ function SignPage() {
   const [typedName, setTypedName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
+  const [step, setStep] = useState<"code" | "face" | "sign">("code");
+  const [accessCode, setAccessCode] = useState("");
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [verifyingFace, setVerifyingFace] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
 
   useEffect(() => {
     fetch(`/api/public/sign/${token}`)
@@ -52,10 +63,35 @@ function SignPage() {
         }
         return res.json();
       })
-      .then(setDoc)
+      .then((data) => {
+        setDoc(data);
+        // Pre-fill name if available
+        if (data.recipient_name) setTypedName(data.recipient_name);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [token]);
+
+  useEffect(() => {
+    if (step === "face" && !capturedImage) {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then((stream) => {
+          if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+          }
+        })
+        .catch((err) => {
+          console.error("Erro ao acessar câmera:", err);
+          toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+        });
+
+      return () => {
+        const stream = videoRef.current?.srcObject as MediaStream;
+        stream?.getTracks().forEach((track) => track.stop());
+      };
+    }
+  }, [step, capturedImage]);
+
 
   const submit = async () => {
     const parts = typedName.trim().split(/\s+/).filter((p) => p.length >= 2);
@@ -233,39 +269,178 @@ function SignPage() {
                 <div className="border-b border-border bg-secondary/50 px-6 py-4">
                   <h3 className="font-display text-lg font-bold">Finalizar assinatura</h3>
                   <p className="mt-0.5 text-xs text-muted-foreground">
-                    Preencha seu nome e desenhe sua assinatura para confirmar.
+                    Siga os passos abaixo para confirmar sua identidade e assinar.
                   </p>
                 </div>
-                <div className="space-y-4 p-6">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="signer-name">Seu nome completo</Label>
-                    <Input
-                      id="signer-name"
-                      value={typedName}
-                      onChange={(e) => setTypedName(e.target.value)}
-                      placeholder="Nome e sobrenome"
-                    />
-                    <p className="text-[11px] text-muted-foreground">Informe seu nome completo (nome e sobrenome).</p>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Sua assinatura</Label>
-                    <SignaturePad onChange={setSignature} />
-                  </div>
-                  <div className="flex flex-col gap-2 pt-1">
-                    <Button
-                      onClick={submit}
-                      disabled={submitting || !signature || typedName.trim().split(/\s+/).filter((p) => p.length >= 2).length < 2}
-                      className="h-11 w-full font-semibold"
-                    >
-                      {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
-                      Confirmar assinatura
-                    </Button>
-                    <Button variant="ghost" onClick={decline} disabled={submitting} className="w-full">
+                <div className="p-6">
+                  {step === "code" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="flex justify-center">
+                        <div className="rounded-full bg-primary/10 p-3 text-primary">
+                          <Lock className="size-6" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h4 className="font-semibold">Código de Acesso</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Informe o código único recebido via WhatsApp.
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="access-code">Código Único</Label>
+                        <Input
+                          id="access-code"
+                          type="text"
+                          value={accessCode}
+                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                          placeholder="EX: TG-123456"
+                          className="text-center font-mono text-lg tracking-widest"
+                        />
+                      </div>
+                      <Button 
+                        className="w-full" 
+                        onClick={() => {
+                          if (accessCode.length < 3) return toast.error("Informe o código completo");
+                          setStep("face");
+                        }}
+                      >
+                        Continuar para Validação Facial
+                      </Button>
+                    </div>
+                  )}
+
+                  {step === "face" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="flex justify-center">
+                        <div className="rounded-full bg-primary/10 p-3 text-primary">
+                          <Camera className="size-6" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h4 className="font-semibold">Validação Facial</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Posicione seu rosto no centro da câmera.
+                        </p>
+                      </div>
+                      
+                      <div className="relative mx-auto aspect-square w-full max-w-[280px] overflow-hidden rounded-full border-4 border-muted bg-black">
+                        {!capturedImage ? (
+                          <>
+                            <video
+                              ref={videoRef}
+                              autoPlay
+                              playsInline
+                              muted
+                              className="h-full w-full object-cover"
+                              onCanPlay={() => {
+                                videoRef.current?.play().catch(console.error);
+                              }}
+                            />
+                            <div className="pointer-events-none absolute inset-0 border-[16px] border-black/20 rounded-full" />
+                          </>
+                        ) : (
+                          <img src={capturedImage} className="h-full w-full object-cover" alt="Captura" />
+                        )}
+                      </div>
+
+                      {verifyingFace && (
+                        <div className="flex items-center justify-center gap-2 text-sm text-primary animate-pulse">
+                          <Loader2 className="size-4 animate-spin" />
+                          <span>Validando identidade com DeepFace...</span>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        {!capturedImage ? (
+                          <Button 
+                            className="w-full" 
+                            onClick={async () => {
+                              if (!videoRef.current) return;
+                              const canvas = document.createElement("canvas");
+                              canvas.width = videoRef.current.videoWidth;
+                              canvas.height = videoRef.current.videoHeight;
+                              const ctx = canvas.getContext("2d");
+                              if (!ctx) return;
+                              ctx.drawImage(videoRef.current, 0, 0);
+                              const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+                              setCapturedImage(dataUrl);
+                              
+                              // Verify face via API
+                              setVerifyingFace(true);
+                              try {
+                                const endpoint = doc.facial_status === "registered" ? "verify" : "register";
+                                const res = await fetch(`/api/public/face/${endpoint}`, {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    clientId: doc.recipient_id,
+                                    image: dataUrl,
+                                    accessCode
+                                  })
+                                });
+                                const result = await res.json();
+                                if (!res.ok) throw new Error(result.error || "Falha na validação facial");
+                                
+                                toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada com sucesso!");
+                                setStep("sign");
+                              } catch (e: any) {
+                                toast.error(e.message);
+                                setCapturedImage(null);
+                              } finally {
+                                setVerifyingFace(false);
+                              }
+                            }}
+                          >
+                            Capturar Foto
+                          </Button>
+                        ) : (
+                          <Button variant="outline" className="w-full" onClick={() => setCapturedImage(null)} disabled={verifyingFace}>
+                            Tentar Novamente
+                          </Button>
+                        )}
+                        
+                        <canvas ref={canvasRef} className="hidden" />
+                      </div>
+                    </div>
+                  )}
+
+                  {step === "sign" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="signer-name">Seu nome completo</Label>
+                        <Input
+                          id="signer-name"
+                          value={typedName}
+                          onChange={(e) => setTypedName(e.target.value)}
+                          placeholder="Nome e sobrenome"
+                        />
+                        <p className="text-[11px] text-muted-foreground">Informe seu nome completo (nome e sobrenome).</p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Sua assinatura</Label>
+                        <SignaturePad onChange={setSignature} />
+                      </div>
+                      <div className="flex flex-col gap-2 pt-1">
+                        <Button
+                          onClick={submit}
+                          disabled={submitting || !signature || typedName.trim().split(/\s+/).filter((p) => p.length >= 2).length < 2}
+                          className="h-11 w-full font-semibold"
+                        >
+                          {submitting && <Loader2 className="mr-2 size-4 animate-spin" />}
+                          Confirmar assinatura
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!submitting && (
+                    <Button variant="ghost" onClick={decline} disabled={submitting} className="w-full mt-4 text-xs text-muted-foreground">
                       Recusar documento
                     </Button>
-                  </div>
+                  )}
                 </div>
               </div>
+
 
               {doc.deadline && (
                 <div className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs">

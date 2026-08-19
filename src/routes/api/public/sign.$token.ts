@@ -7,7 +7,7 @@ export const Route = createFileRoute("/api/public/sign/$token")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("id, name, status, recipient_name, message, deadline, file_path, signed_file_path, owner_id, viewed_at")
+          .select("id, name, status, recipient_name, recipient_id, message, deadline, file_path, signed_file_path, owner_id, viewed_at")
           .eq("access_token", params.token)
           .maybeSingle();
 
@@ -23,7 +23,19 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           await supabaseAdmin.from("document_history").insert({ document_id: doc.id, action: "expirado" });
         }
 
+        // recipient facial status
+        let facial_status = "pending";
+        if (doc.recipient_id) {
+          const { data: client } = await supabaseAdmin
+            .from("clients")
+            .select("facial_status")
+            .eq("id", doc.recipient_id)
+            .maybeSingle();
+          if (client) facial_status = client.facial_status ?? "pending";
+        }
+
         // sender name
+
         const { data: sender } = await supabaseAdmin
           .from("profiles")
           .select("full_name, email")
@@ -51,11 +63,14 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           name: doc.name,
           status,
           recipient_name: doc.recipient_name,
+          recipient_id: doc.recipient_id,
           message: doc.message,
           deadline: doc.deadline,
           sender_name: sender?.full_name ?? sender?.email ?? "Remetente",
           pdf_url: urlData?.signedUrl ?? null,
+          facial_status,
         });
+
       },
     },
   },
