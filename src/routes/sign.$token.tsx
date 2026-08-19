@@ -59,11 +59,19 @@ function SignPage() {
   useEffect(() => {
     fetch(`/api/public/sign/${token}`)
       .then(async (res) => {
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j.error ?? "Erro ao carregar");
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("Failed to parse response:", text);
+          throw new Error("Resposta inválida do servidor");
         }
-        return res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error ?? "Erro ao carregar");
+        }
+        return data;
       })
       .then((data) => {
         setDoc(data);
