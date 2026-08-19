@@ -44,6 +44,7 @@ export const Route = createFileRoute("/sign/$token")({
 function SignPage() {
   const { token } = Route.useParams();
   const [doc, setDoc] = useState<DocData | null>(null);
+  const [employee, setEmployee] = useState<{ id: string; name: string; facial_status: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signature, setSignature] = useState<string | null>(null);
@@ -346,6 +347,7 @@ function SignPage() {
                             
                             // Use the facial_status returned by backend for THIS employee
                             toast.success(`Bem-vindo, ${data.employee.name}`);
+                            setEmployee(data.employee);
                             setStep("face");
                           } catch (err: any) {
                             toast.error(err.message);
@@ -429,7 +431,8 @@ function SignPage() {
                               // Verify face via API
                               setVerifyingFace(true);
                               try {
-                                const endpoint = doc.facial_status === "registered" ? "verify" : "register";
+                                const currentFacialStatus = employee?.facial_status || doc.facial_status;
+                                const endpoint = currentFacialStatus === "registered" ? "verify" : "register";
                                 const res = await fetch(`/api/public/face/${endpoint}`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
@@ -443,7 +446,8 @@ function SignPage() {
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
 
                                 setFacialAuthToken(result.facialAuthToken);
-                                toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
+                                const currentFacialStatus = employee?.facial_status || doc.facial_status;
+                                toast.success(currentFacialStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
                                 setStep("sign");
                               } catch (err: any) {
                                 toast.error(err.message);
