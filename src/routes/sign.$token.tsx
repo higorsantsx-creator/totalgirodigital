@@ -734,8 +734,13 @@ function SignPage() {
                               {/* Central Oval Guide */}
                               <div className={`
                                 w-[70%] h-[80%] rounded-[50%] border-2 border-dashed transition-colors duration-300
-                                ${faceMetrics.position === 'center' ? 'border-success/60 bg-success/5' : 'border-white/30'}
+                                 ${faceMetrics.position === 'center' ? 'border-success bg-success/10' : 'border-white/30'}
                               `} />
+                              
+                              {/* Central scanning line when center detected */}
+                              {faceMetrics.position === 'center' && !verifyingFace && (
+                                <div className="absolute top-[20%] w-[70%] h-0.5 bg-success/40 animate-scan pointer-events-none" />
+                              )}
                               
                               {/* Feedback indicators */}
                               <div className="absolute top-8 flex gap-2">
