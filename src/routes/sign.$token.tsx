@@ -9,7 +9,8 @@ import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Sen
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-import { loadModels, getFaceEmbedding, validateFaceQuality } from "@/lib/face-api.client";
+// @ts-ignore - Handled via dynamic import in effect
+import type { loadModels, getFaceEmbedding, validateFaceQuality } from "@/lib/face-api.client";
 
 
 type DocData = {
@@ -100,6 +101,7 @@ function SignPage() {
         try {
           // Lazy load models
           setModelsLoading(true);
+          const { loadModels } = await import("@/lib/face-api.client");
           await loadModels();
           setModelsLoading(false);
 
