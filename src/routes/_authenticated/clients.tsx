@@ -39,6 +39,7 @@ type Client = {
 };
 
 
+
 function ClientsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -57,7 +58,8 @@ function ClientsPage() {
         .select("id, name, company, role, unit, document, email, phone, notes, access_code, facial_status")
         .order("name");
       if (error) throw error;
-      return data as Client[];
+      return data as unknown as Client[];
+
     },
 
   });
@@ -329,7 +331,7 @@ function ClientsPage() {
                       )}
                     </td>
 
-                    <td className="px-6 py-4 text-muted-foreground">{c.document ?? "—"}</td>
+                    <td className="px-6 py-4 text-muted-foreground">{c.phone ?? "—"}</td>
                     <td className="px-6 py-4 text-right">
                       <Button 
                         variant="ghost" 
