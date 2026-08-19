@@ -22,14 +22,12 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedClientsRouteImport } from './routes/_authenticated/clients'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports.index'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents.index'
-import { Route as ApiPublicSign_tokenRouteImport } from './routes/api/public/sign_$token'
 import { Route as AuthenticatedReportsSignersRouteImport } from './routes/_authenticated/reports.signers'
 import { Route as AuthenticatedReportsDocumentsRouteImport } from './routes/_authenticated/reports.documents'
 import { Route as AuthenticatedReportsCompetenciasRouteImport } from './routes/_authenticated/reports.competencias'
 import { Route as AuthenticatedReportsAuditRouteImport } from './routes/_authenticated/reports.audit'
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
-import { Route as ApiPublicSign_tokenConfirmRouteImport } from './routes/api/public/sign_$token.confirm'
 import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign.$token'
 import { Route as ApiPublicFaceVerifyRouteImport } from './routes/api/public/face/verify'
 import { Route as ApiPublicFaceRegisterRouteImport } from './routes/api/public/face/register'
@@ -101,11 +99,6 @@ const AuthenticatedDocumentsIndexRoute =
     path: '/documents/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicSign_tokenRoute = ApiPublicSign_tokenRouteImport.update({
-  id: '/api/public/sign_$token',
-  path: '/api/public/sign_$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedReportsSignersRoute =
   AuthenticatedReportsSignersRouteImport.update({
     id: '/signers',
@@ -141,12 +134,6 @@ const AuthenticatedDocumentsIdRoute =
     id: '/documents/$id',
     path: '/documents/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const ApiPublicSign_tokenConfirmRoute =
-  ApiPublicSign_tokenConfirmRouteImport.update({
-    id: '/confirm',
-    path: '/confirm',
-    getParentRoute: () => ApiPublicSign_tokenRoute,
   } as any)
 const ApiPublicSignTokenRoute = ApiPublicSignTokenRouteImport.update({
   id: '/api/public/sign/$token',
@@ -187,13 +174,11 @@ export interface FileRoutesByFullPath {
   '/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
   '/reports/documents': typeof AuthenticatedReportsDocumentsRoute
   '/reports/signers': typeof AuthenticatedReportsSignersRoute
-  '/api/public/sign_$token': typeof ApiPublicSign_tokenRouteWithChildren
   '/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
-  '/api/public/sign_$token/confirm': typeof ApiPublicSign_tokenConfirmRoute
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
 export interface FileRoutesByTo {
@@ -212,13 +197,11 @@ export interface FileRoutesByTo {
   '/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
   '/reports/documents': typeof AuthenticatedReportsDocumentsRoute
   '/reports/signers': typeof AuthenticatedReportsSignersRoute
-  '/api/public/sign_$token': typeof ApiPublicSign_tokenRouteWithChildren
   '/documents': typeof AuthenticatedDocumentsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
-  '/api/public/sign_$token/confirm': typeof ApiPublicSign_tokenConfirmRoute
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
 export interface FileRoutesById {
@@ -240,13 +223,11 @@ export interface FileRoutesById {
   '/_authenticated/reports/competencias': typeof AuthenticatedReportsCompetenciasRoute
   '/_authenticated/reports/documents': typeof AuthenticatedReportsDocumentsRoute
   '/_authenticated/reports/signers': typeof AuthenticatedReportsSignersRoute
-  '/api/public/sign_$token': typeof ApiPublicSign_tokenRouteWithChildren
   '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
-  '/api/public/sign_$token/confirm': typeof ApiPublicSign_tokenConfirmRoute
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
 export interface FileRouteTypes {
@@ -268,13 +249,11 @@ export interface FileRouteTypes {
     | '/reports/competencias'
     | '/reports/documents'
     | '/reports/signers'
-    | '/api/public/sign_$token'
     | '/documents/'
     | '/reports/'
     | '/api/public/face/register'
     | '/api/public/face/verify'
     | '/api/public/sign/$token'
-    | '/api/public/sign_$token/confirm'
     | '/api/public/sign/$token/confirm'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -293,13 +272,11 @@ export interface FileRouteTypes {
     | '/reports/competencias'
     | '/reports/documents'
     | '/reports/signers'
-    | '/api/public/sign_$token'
     | '/documents'
     | '/reports'
     | '/api/public/face/register'
     | '/api/public/face/verify'
     | '/api/public/sign/$token'
-    | '/api/public/sign_$token/confirm'
     | '/api/public/sign/$token/confirm'
   id:
     | '__root__'
@@ -320,13 +297,11 @@ export interface FileRouteTypes {
     | '/_authenticated/reports/competencias'
     | '/_authenticated/reports/documents'
     | '/_authenticated/reports/signers'
-    | '/api/public/sign_$token'
     | '/_authenticated/documents/'
     | '/_authenticated/reports/'
     | '/api/public/face/register'
     | '/api/public/face/verify'
     | '/api/public/sign/$token'
-    | '/api/public/sign_$token/confirm'
     | '/api/public/sign/$token/confirm'
   fileRoutesById: FileRoutesById
 }
@@ -337,7 +312,6 @@ export interface RootRouteChildren {
   OauthCallbackRoute: typeof OauthCallbackRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignTokenRoute: typeof SignTokenRoute
-  ApiPublicSign_tokenRoute: typeof ApiPublicSign_tokenRouteWithChildren
   ApiPublicFaceRegisterRoute: typeof ApiPublicFaceRegisterRoute
   ApiPublicFaceVerifyRoute: typeof ApiPublicFaceVerifyRoute
   ApiPublicSignTokenRoute: typeof ApiPublicSignTokenRouteWithChildren
@@ -436,13 +410,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/sign_$token': {
-      id: '/api/public/sign_$token'
-      path: '/api/public/sign_$token'
-      fullPath: '/api/public/sign_$token'
-      preLoaderRoute: typeof ApiPublicSign_tokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/reports/signers': {
       id: '/_authenticated/reports/signers'
       path: '/signers'
@@ -484,13 +451,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/documents/$id'
       preLoaderRoute: typeof AuthenticatedDocumentsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/public/sign_$token/confirm': {
-      id: '/api/public/sign_$token/confirm'
-      path: '/confirm'
-      fullPath: '/api/public/sign_$token/confirm'
-      preLoaderRoute: typeof ApiPublicSign_tokenConfirmRouteImport
-      parentRoute: typeof ApiPublicSign_tokenRoute
     }
     '/api/public/sign/$token': {
       id: '/api/public/sign/$token'
@@ -567,17 +527,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface ApiPublicSign_tokenRouteChildren {
-  ApiPublicSign_tokenConfirmRoute: typeof ApiPublicSign_tokenConfirmRoute
-}
-
-const ApiPublicSign_tokenRouteChildren: ApiPublicSign_tokenRouteChildren = {
-  ApiPublicSign_tokenConfirmRoute: ApiPublicSign_tokenConfirmRoute,
-}
-
-const ApiPublicSign_tokenRouteWithChildren =
-  ApiPublicSign_tokenRoute._addFileChildren(ApiPublicSign_tokenRouteChildren)
-
 interface ApiPublicSignTokenRouteChildren {
   ApiPublicSignTokenConfirmRoute: typeof ApiPublicSignTokenConfirmRoute
 }
@@ -596,7 +545,6 @@ const rootRouteChildren: RootRouteChildren = {
   OauthCallbackRoute: OauthCallbackRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignTokenRoute: SignTokenRoute,
-  ApiPublicSign_tokenRoute: ApiPublicSign_tokenRouteWithChildren,
   ApiPublicFaceRegisterRoute: ApiPublicFaceRegisterRoute,
   ApiPublicFaceVerifyRoute: ApiPublicFaceVerifyRoute,
   ApiPublicSignTokenRoute: ApiPublicSignTokenRouteWithChildren,
