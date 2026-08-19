@@ -8,9 +8,9 @@ export const loadModels = async () => {
   if (modelsLoadingPromise) return modelsLoadingPromise;
 
   modelsLoadingPromise = (async () => {
-    const MODEL_URL = '/models';
+    const MODEL_URL = '/models/'; // Added trailing slash for clarity
     try {
-      console.log('Carregando modelos face-api...');
+      console.log('Carregando modelos face-api de:', MODEL_URL);
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),

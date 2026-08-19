@@ -104,11 +104,23 @@ function SignPage() {
         return;
       }
 
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+      const constraints = { 
+        video: { 
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 640 }
+        } 
+      };
+
+      navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
           setCameraError(null);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
+            // Ensure video plays and metadata is loaded
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play().catch(console.error);
+            };
           }
         })
         .catch((err) => {
@@ -116,12 +128,17 @@ function SignPage() {
           if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
             setCameraError({ 
               type: 'blocked', 
-              message: "Acesso à câmera bloqueado. Por favor, habilite a permissão nas configurações do seu navegador." 
+              message: "Acesso à câmera bloqueado. Por favor, habilite a permissão nas configurações do seu navegador ou do celular." 
+            });
+          } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            setCameraError({ 
+              type: 'error', 
+              message: "Nenhuma câmera encontrada no dispositivo." 
             });
           } else {
             setCameraError({ 
               type: 'error', 
-              message: "Não foi possível acessar a câmera. Verifique se ela está sendo usada por outro app." 
+              message: `Erro ao acessar câmera: ${err.message || 'Verifique se ela está sendo usada por outro app.'}` 
             });
           }
         });
