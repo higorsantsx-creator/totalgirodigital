@@ -90,7 +90,10 @@ function SignPage() {
         try {
           data = JSON.parse(text);
         } catch (e) {
-          console.error("Failed to parse response:", text);
+          console.error("Failed to parse response. Text received:", text.substring(0, 500));
+          if (text.trim().startsWith("<!doctype") || text.trim().startsWith("<html")) {
+             throw new Error("O servidor retornou uma página HTML em vez de JSON. Isso pode indicar um erro de rota ou permissão.");
+          }
           throw new Error("Resposta inválida do servidor");
         }
         

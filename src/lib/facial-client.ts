@@ -14,7 +14,7 @@ export const loadModels = async () => {
   if (modelsLoadingPromise) return modelsLoadingPromise;
 
   modelsLoadingPromise = (async () => {
-    const MODEL_URL = '/models/'; // Added trailing slash for clarity
+    const MODEL_URL = '/models';
     try {
       console.log('Carregando modelos face-api de:', MODEL_URL);
       await Promise.all([
