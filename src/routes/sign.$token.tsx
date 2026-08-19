@@ -156,7 +156,10 @@ function SignPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-secondary/40">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Carregando documento...</p>
+        </div>
       </div>
     );
   }
@@ -167,6 +170,9 @@ function SignPage() {
           <XCircle className="mx-auto size-10 text-destructive" />
           <h1 className="mt-4 font-display text-xl font-bold">Link inválido</h1>
           <p className="mt-2 text-sm text-muted-foreground">{error ?? "Este documento não está disponível."}</p>
+          <Button variant="outline" className="mt-6" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
         </div>
       </div>
     );
