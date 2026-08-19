@@ -1,31 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/api/public/sign/$token")({
+export const Route = createFileRoute("/api/public/sign/$token/")({
   server: {
     handlers: {
       GET: async ({ params }) => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         
-        console.log("API: Fetching document with token:", params.token);
-
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("*") // Select all to avoid missing column issues
+          .select("*")
           .eq("access_token", params.token)
           .maybeSingle();
 
-        if (error) {
-          console.error("API: Database error:", error);
-          return Response.json({ error: "Erro interno no servidor" }, { status: 500 });
-        }
-
-        if (!doc) {
-          console.warn("API: Document not found for token:", params.token);
+        if (error || !doc) {
           return Response.json({ error: "Documento não encontrado" }, { status: 404 });
         }
 
         const d = doc as any;
-        console.log("API: Found document:", d.id, "Status:", d.status);
 
         // expiry check
         let status = d.status;
