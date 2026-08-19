@@ -102,7 +102,7 @@ function SignPage() {
         try {
           // Lazy load models
           setModelsLoading(true);
-          const { loadModels } = await import("@/lib/face-api.client");
+          const { loadModels } = await import("@/lib/face-api-worker");
           await loadModels();
           setModelsLoading(false);
 
