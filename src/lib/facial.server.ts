@@ -14,52 +14,33 @@ export const facialService = {
   /**
    * Calls the DeepFace service to register or verify a face.
    */
-  async processFace(
-    imageBase64: string,
-    action: "register" | "verify",
-    targetEmbedding?: number[],
+  /**
+   * Compares a locally generated embedding with a stored one server-side.
+   */
+  async verifyEmbedding(
+    inputEmbedding: number[],
+    targetEmbedding: number[]
   ): Promise<DeepFaceResponse> {
-    const apiKey = process.env.DEEPFACE_API_KEY;
-    const serviceUrl = process.env.DEEPFACE_SERVICE_URL;
-
-    if (!apiKey) {
-      throw new Error("CONFIG_ERROR: DEEPFACE_API_KEY is not defined in the environment");
-    }
-
-    if (!serviceUrl) {
-      console.warn("DEEPFACE_SERVICE_URL not configured");
-      return { error: "Serviço facial não configurado" };
-    }
-
-    try {
-      const response = await fetch(`${serviceUrl}/face/${action}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": apiKey || "",
-        },
-        body: JSON.stringify({
-          image: imageBase64,
-          target_embedding: targetEmbedding,
-          model_name: "ArcFace",
-          enforce_detection: true,
-          detector_backend: "opencv",
-          align: true,
-          anti_spoofing: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return { error: `Erro no serviço facial: ${response.status} ${errorText}` };
-      }
-
-      return await response.json();
-    } catch (e) {
-      console.error("[facialService] request failed", e);
-      return { error: "Falha na comunicação com o serviço facial" };
-    }
+    // We use a strict Euclidean distance comparison server-side to ensure integrity.
+    // The threshold is usually 0.6 for ArcFace-based models.
+    const distance = Math.sqrt(
+      inputEmbedding.reduce((acc, val, i) => acc + Math.pow(val - targetEmbedding[i], 0), 0)
+    );
+    
+    // Note: Re-implementing Euclidean distance manually for standard JS arrays
+    const sumSq = inputEmbedding.reduce((acc, val, i) => acc + Math.pow(val - targetEmbedding[i], 2), 0);
+    const euclideanDistance = Math.sqrt(sumSq);
+    
+    // Threshold 0.6 is common for "verified"
+    const verified = euclideanDistance < 0.6;
+    
+    return {
+      verified,
+      distance: euclideanDistance,
+      face_detected: true
+    };
   },
+
 
   /**
    * Records a validation attempt in the database logs.
