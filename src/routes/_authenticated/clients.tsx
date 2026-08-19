@@ -147,7 +147,9 @@ function ClientsPage() {
       email: (String(form.get("email") ?? "").trim() || null),
       phone: (String(form.get("phone") ?? "").trim() || null),
       notes: (String(form.get("notes") ?? "").trim() || null),
+      access_code: (String(form.get("access_code") ?? "").trim() || null),
     };
+
     if (!payload.name) return toast.error("Nome é obrigatório");
 
     if (editing) {
@@ -223,6 +225,11 @@ function ClientsPage() {
                     <Label htmlFor="phone">WhatsApp *</Label>
                     <Input id="phone" name="phone" placeholder="(11) 99999-9999" defaultValue={editing?.phone ?? ""} />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="access_code">Código Único (Acesso)</Label>
+                    <Input id="access_code" name="access_code" placeholder="Ex: 0001" defaultValue={editing?.access_code ?? ""} />
+                  </div>
+
                   <div className="space-y-1.5">
                     <Label htmlFor="company">Empresa</Label>
                     <Input id="company" name="company" defaultValue={editing?.company ?? ""} />

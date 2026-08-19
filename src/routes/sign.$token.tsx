@@ -50,8 +50,10 @@ function SignPage() {
   const [accessCode, setAccessCode] = useState("");
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
+  const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
 
 
   useEffect(() => {
@@ -97,11 +99,18 @@ function SignPage() {
     const parts = typedName.trim().split(/\s+/).filter((p) => p.length >= 2);
     if (parts.length < 2) return toast.error("Digite seu nome completo (nome e sobrenome)");
     if (!signature) return toast.error("Desenhe sua assinatura primeiro");
+    if (!facialAuthToken) return toast.error("Validação facial obrigatória");
+
     setSubmitting(true);
     const res = await fetch(`/api/public/sign/${token}/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "sign", signature_data_url: signature, signer_name: typedName.trim() }),
+      body: JSON.stringify({ 
+        action: "sign", 
+        signature_data_url: signature, 
+        signer_name: typedName.trim(),
+        facial_auth_token: facialAuthToken
+      }),
     });
     if (!res.ok) {
       setSubmitting(false);
@@ -116,6 +125,7 @@ function SignPage() {
     setSubmitting(false);
     setDone("assinado");
   };
+
 
   const decline = async () => {
     const reason = window.prompt("Deseja informar o motivo da recusa? (opcional)");
@@ -373,16 +383,19 @@ function SignPage() {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({
-                                    clientId: doc.recipient_id,
+                                    access_token: token,
                                     image: dataUrl,
-                                    accessCode
+                                    access_code: accessCode
                                   })
+
                                 });
                                 const result = await res.json();
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
                                 
                                 toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada com sucesso!");
+                                setFacialAuthToken(result.facialAuthToken);
                                 setStep("sign");
+
                               } catch (e: any) {
                                 toast.error(e.message);
                                 setCapturedImage(null);
