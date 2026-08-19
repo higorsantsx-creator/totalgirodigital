@@ -7,20 +7,32 @@ import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
-    logDiagnostic("auth.guard.start", { route: "_authenticated" });
+  beforeLoad: async ({ location }) => {
+    logDiagnostic("auth.guard.start", { route: "_authenticated", pathname: location.pathname });
+    
+    // Skip auth guard for public signing paths if they somehow hit this layout
+    if (location.pathname.startsWith("/sign/")) {
+      return {};
+    }
+
     try {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data.user) {
         logDiagnostic("auth.guard.redirect", { route: "_authenticated", hasError: Boolean(error) }, error ?? undefined);
-        throw redirect({ to: "/auth" });
+        throw redirect({ 
+          to: "/auth",
+          search: { redirect: location.href }
+        });
       }
       logDiagnostic("auth.guard.success", { route: "_authenticated", userId: data.user.id });
       return { user: data.user };
     } catch (error) {
       if (isRedirect(error)) throw error;
       logDiagnostic("auth.guard.failed", { route: "_authenticated" }, error);
-      throw redirect({ to: "/auth" });
+      throw redirect({ 
+        to: "/auth",
+        search: { redirect: location.href }
+      });
     }
   },
   component: AuthenticatedLayout,

@@ -27,6 +27,10 @@ type DocData = {
 
 export const Route = createFileRoute("/sign/$token")({
   ssr: false,
+  beforeLoad: async ({ params }) => {
+    // We allow public access to this specific signing route
+    return { token: params.token };
+  },
   head: () => ({
     meta: [
       { title: "Assinar Documento — Total Giro" },
