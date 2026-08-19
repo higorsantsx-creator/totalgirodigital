@@ -59,6 +59,8 @@ function SignPage() {
   const [consentGiven, setConsentGiven] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
+  const [faceCycleStatus, setFaceCycleStatus] = useState<'idle' | 'detecting' | 'capturing' | 'verifying' | 'error'>('idle');
+  const [cycleError, setCycleError] = useState<string | null>(null);
   const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<{ type: 'blocked' | 'incompatible' | 'error', message: string } | null>(null);
