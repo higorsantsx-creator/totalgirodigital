@@ -54,7 +54,7 @@ function SignPage() {
   const [typedName, setTypedName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
-  const [step, setStep] = useState<"code" | "consent" | "face" | "sign">("code");
+  const [step, setStep] = useState<"code" | "consent" | "precheck" | "face" | "sign">("code");
   const [accessCode, setAccessCode] = useState("");
   const [consentGiven, setConsentGiven] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -62,6 +62,12 @@ function SignPage() {
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<{ type: 'blocked' | 'incompatible' | 'error', message: string } | null>(null);
   const [faceFeedback, setFaceFeedback] = useState<string | null>(null);
+  const [precheckStatus, setPrecheckStatus] = useState<{
+    permission: 'pending' | 'ok' | 'fail';
+    camera: 'pending' | 'ok' | 'fail';
+    models: 'pending' | 'ok' | 'fail';
+  }>({ permission: 'pending', camera: 'pending', models: 'pending' });
+  const [checkingHardware, setCheckingHardware] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -226,6 +232,55 @@ function SignPage() {
     setSubmitting(false);
     if (!res.ok) return toast.error("Erro ao recusar");
     setDone("recusado");
+  };
+
+  const runPrecheck = async () => {
+    setCheckingHardware(true);
+    setPrecheckStatus({ permission: 'pending', camera: 'pending', models: 'pending' });
+
+    try {
+      // 1. Models check
+      try {
+        await loadModels();
+        setPrecheckStatus(prev => ({ ...prev, models: 'ok' }));
+      } catch (e) {
+        setPrecheckStatus(prev => ({ ...prev, models: 'fail' }));
+        toast.error("Erro ao carregar modelos de IA");
+      }
+
+      // 2. Camera/Permission check
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setPrecheckStatus(prev => ({ ...prev, permission: 'fail', camera: 'fail' }));
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { facingMode: "user" } 
+        });
+        
+        setPrecheckStatus(prev => ({ ...prev, permission: 'ok' }));
+
+        const videoTrack = stream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        
+        // Basic check for resolution or at least existence of stream
+        if (settings.width && settings.height) {
+          setPrecheckStatus(prev => ({ ...prev, camera: 'ok' }));
+        } else {
+          setPrecheckStatus(prev => ({ ...prev, camera: 'fail' }));
+        }
+
+        // Clean up check stream
+        stream.getTracks().forEach(t => t.stop());
+      } catch (err: any) {
+        console.error("Precheck camera error:", err);
+        setPrecheckStatus(prev => ({ ...prev, permission: 'fail', camera: 'fail' }));
+      }
+
+    } finally {
+      setCheckingHardware(false);
+    }
   };
 
   if (loading) {
@@ -490,10 +545,88 @@ function SignPage() {
                       <Button 
                         className="w-full" 
                         disabled={!consentGiven}
-                        onClick={() => setStep("face")}
+                        onClick={() => setStep("precheck")}
                       >
-                        Iniciar Validação Facial
+                        Próximo Passo
                       </Button>
+                    </div>
+                  )}
+
+                  {step === "precheck" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="flex justify-center">
+                        <div className="rounded-full bg-primary/10 p-3 text-primary">
+                          <ShieldCheck className="size-6" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h4 className="font-semibold text-lg">Verificação do Sistema</h4>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Vamos garantir que tudo está pronto para a validação.
+                        </p>
+                      </div>
+
+                      <div className="space-y-3 py-2">
+                        <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                          <div className="flex items-center gap-3">
+                            {precheckStatus.permission === 'ok' ? <CheckCircle2 className="size-5 text-success" /> : 
+                             precheckStatus.permission === 'fail' ? <XCircle className="size-5 text-destructive" /> : 
+                             <div className="size-5 rounded-full border-2 border-primary/20" />}
+                            <span className="text-sm font-medium">Permissão da Câmera</span>
+                          </div>
+                          {precheckStatus.permission === 'fail' && <AlertTriangle className="size-4 text-warning" />}
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                          <div className="flex items-center gap-3">
+                            {precheckStatus.camera === 'ok' ? <CheckCircle2 className="size-5 text-success" /> : 
+                             precheckStatus.camera === 'fail' ? <XCircle className="size-5 text-destructive" /> : 
+                             <div className="size-5 rounded-full border-2 border-primary/20" />}
+                            <span className="text-sm font-medium">Hardware de Vídeo</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between rounded-lg border border-border p-3">
+                          <div className="flex items-center gap-3">
+                            {precheckStatus.models === 'ok' ? <CheckCircle2 className="size-5 text-success" /> : 
+                             precheckStatus.models === 'fail' ? <XCircle className="size-5 text-destructive" /> : 
+                             <div className="size-5 rounded-full border-2 border-primary/20" />}
+                            <span className="text-sm font-medium">Recursos de Inteligência</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {precheckStatus.permission === 'fail' && (
+                        <div className="rounded-lg bg-destructive/10 p-3 text-[11px] text-destructive flex gap-2">
+                          <Info className="size-4 shrink-0" />
+                          <p>Acesso negado. Por favor, autorize o uso da câmera no cadeado ao lado da URL do navegador ou nas configurações do seu celular.</p>
+                        </div>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        {precheckStatus.permission === 'ok' && precheckStatus.camera === 'ok' && precheckStatus.models === 'ok' ? (
+                          <Button className="w-full" onClick={() => setStep("face")}>
+                            Iniciar Validação Facial
+                          </Button>
+                        ) : (
+                          <Button 
+                            className="w-full" 
+                            variant={precheckStatus.permission === 'fail' ? 'destructive' : 'default'}
+                            onClick={runPrecheck}
+                            disabled={checkingHardware}
+                          >
+                            {checkingHardware ? (
+                              <>
+                                <Loader2 className="mr-2 size-4 animate-spin" />
+                                Verificando...
+                              </>
+                            ) : "Testar Requisitos"}
+                          </Button>
+                        )}
+                        <Button variant="ghost" className="w-full text-xs" onClick={() => setStep("consent")}>
+                          Voltar ao consentimento
+                        </Button>
+                      </div>
                     </div>
                   )}
 
