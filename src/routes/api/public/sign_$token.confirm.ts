@@ -13,11 +13,12 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { facialService } = await import("@/lib/facial.server");
+        const token = params.token;
 
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
           .select("id, status, owner_id, file_path, client_id")
-          .eq("access_token", params.token)
+          .eq("access_token", token)
           .maybeSingle();
         if (error || !doc) return Response.json({ error: "Documento não encontrado" }, { status: 404 });
         
@@ -50,7 +51,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           return Response.json({ ok: true });
         }
 
-        // Verify facial auth token for signing
         if (!body.facial_auth_token || !doc.client_id) {
           return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
         }
