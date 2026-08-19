@@ -455,11 +455,6 @@ function SignPage() {
                           >
                             {verifyingFace ? "Validando..." : "Capturar foto"}
                           </Button>
-                              }
-                            }}
-                          >
-                            Capturar Foto
-                          </Button>
                         ) : (
                           <Button variant="outline" className="w-full" onClick={() => setCapturedImage(null)} disabled={verifyingFace}>
                             Tentar Novamente
