@@ -6,19 +6,26 @@ export const Route = createFileRoute("/api/public/sign/$token")({
       GET: async ({ params }) => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         
-        // Select explicitly to avoid type issues with missing columns if cache is stale
+        console.log("API: Fetching document with token:", params.token);
+
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("id, name, status, recipient_name, recipient_id, message, deadline, file_path, signed_file_path, owner_id, viewed_at")
+          .select("*") // Select all to avoid missing column issues
           .eq("access_token", params.token)
           .maybeSingle();
 
-        if (error || !doc) {
+        if (error) {
+          console.error("API: Database error:", error);
+          return Response.json({ error: "Erro interno no servidor" }, { status: 500 });
+        }
+
+        if (!doc) {
+          console.warn("API: Document not found for token:", params.token);
           return Response.json({ error: "Documento não encontrado" }, { status: 404 });
         }
 
-        // Cast to avoid TS errors on dynamic columns
         const d = doc as any;
+        console.log("API: Found document:", d.id, "Status:", d.status);
 
         // expiry check
         let status = d.status;
