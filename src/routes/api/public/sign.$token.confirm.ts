@@ -55,7 +55,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
         }
 
-        const isFacialValid = await (facialService as any).validateFacialAuthToken(
+        const isFacialValid = await facialService.validateFacialAuthToken(
           body.facial_auth_token, 
           doc.id, 
           doc.client_id
