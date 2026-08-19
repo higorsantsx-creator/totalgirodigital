@@ -1,4 +1,5 @@
 // src/lib/facial.server.ts is for server-only logic
+import { createHash, randomBytes } from "crypto";
 
 export interface DeepFaceResponse {
   verified?: boolean;
@@ -69,6 +70,7 @@ export const facialService = {
     success: boolean,
     failureReason?: string,
     metadata?: any,
+    ip?: string | null,
   ) {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("facial_validation_logs").insert({
@@ -76,7 +78,68 @@ export const facialService = {
       document_id: documentId,
       success,
       failure_reason: failureReason,
-      metadata,
+      metadata: { ...metadata, ip },
     });
   },
+
+  /**
+   * Generates a cryptographically secure token and stores its hash.
+   */
+  async createFacialAuthToken(documentId: string, employeeId: string): Promise<string> {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const token = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+
+    const { error } = await supabaseAdmin.from("facial_auth_sessions").insert({
+      token_hash: tokenHash,
+      document_id: documentId,
+      employee_id: employeeId,
+      expires_at: expiresAt.toISOString()
+    });
+
+    if (error) {
+      console.error("[facialService] Failed to create facial auth token", error);
+      throw new Error("Erro ao gerar autorização facial");
+    }
+
+    return token;
+  },
+
+  /**
+   * Validates a facial auth token hash.
+   */
+  async validateFacialAuthToken(token: string, documentId: string, employeeId: string): Promise<boolean> {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+
+    const { data, error } = await supabaseAdmin
+      .from("facial_auth_sessions")
+      .select("id")
+      .eq("token_hash", tokenHash)
+      .eq("document_id", documentId)
+      .eq("employee_id", employeeId)
+      .gt("expires_at", new Date().toISOString())
+      .is("used_at", null)
+      .maybeSingle();
+
+    if (error || !data) return false;
+    
+    return true;
+  },
+
+  /**
+   * Marks a facial auth session as used.
+   */
+  async markFacialAuthTokenUsed(token: string) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+
+    await supabaseAdmin
+      .from("facial_auth_sessions")
+      .update({ used_at: new Date().toISOString() })
+      .eq("token_hash", tokenHash);
+  }
 };

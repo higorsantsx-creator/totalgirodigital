@@ -315,24 +315,53 @@ function SignPage() {
                         </p>
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="access-code">Código Único</Label>
+                        <Label htmlFor="access-code">Código Único (4 dígitos)</Label>
                         <Input
                           id="access-code"
                           type="text"
+                          inputMode="numeric"
+                          maxLength={4}
                           value={accessCode}
-                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                          placeholder="EX: TG-123456"
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            setAccessCode(val);
+                          }}
+                          placeholder="0001"
                           className="text-center font-mono text-lg tracking-widest"
                         />
                       </div>
                       <Button 
                         className="w-full" 
-                        onClick={() => {
-                          if (accessCode.length < 3) return toast.error("Informe o código completo");
-                          setStep("face");
+                        disabled={accessCode.length !== 4 || verifyingFace}
+                        onClick={async () => {
+                          setVerifyingFace(true);
+                          try {
+                            const res = await fetch(`/api/public/sign/${token}/validate-code`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ access_code: accessCode })
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || "Código inválido");
+                            
+                            // Use the facial_status returned by backend for THIS employee
+                            toast.success(`Bem-vindo, ${data.employee.name}`);
+                            setStep("face");
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          } finally {
+                            setVerifyingFace(false);
+                          }
                         }}
                       >
-                        Continuar para Validação Facial
+                        {verifyingFace ? (
+                          <>
+                            <Loader2 className="mr-2 size-4 animate-spin" />
+                            Validando...
+                          </>
+                        ) : (
+                          "Continuar para Validação Facial"
+                        )}
                       </Button>
                     </div>
                   )}
