@@ -59,6 +59,8 @@ function SignPage() {
   const [consentGiven, setConsentGiven] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
+  const [faceCycleStatus, setFaceCycleStatus] = useState<'idle' | 'detecting' | 'capturing' | 'verifying' | 'error'>('idle');
+  const [cycleError, setCycleError] = useState<string | null>(null);
   const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<{ type: 'blocked' | 'incompatible' | 'error', message: string } | null>(null);
@@ -168,6 +170,7 @@ function SignPage() {
     let loadingToastShown = false;
 
     if (step === 'face' && !capturedImage && !cameraError && videoRef.current) {
+      setFaceCycleStatus('detecting');
       interval = setInterval(async () => {
         if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || verifyingFace) return;
         
@@ -223,6 +226,7 @@ function SignPage() {
               if (pos === 'center' && dist === 'ok' && !verifyingFace) {
                 const captureButton = document.getElementById('capture-photo-btn');
                 if (captureButton) {
+                  setFaceCycleStatus('capturing');
                   captureButton.click();
                 }
               }
@@ -236,6 +240,9 @@ function SignPage() {
           }
         }
       }, 800); // Slightly faster polling for auto-capture
+    } else if (step !== 'face') {
+      setFaceCycleStatus('idle');
+      setCycleError(null);
     }
     return () => clearInterval(interval);
   }, [step, capturedImage, cameraError, verifyingFace]);
@@ -761,12 +768,39 @@ function SignPage() {
                         )}
                       </div>
 
-                      {verifyingFace && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-primary animate-pulse">
-                          <Loader2 className="size-4 animate-spin" />
-                          <span>Processando biometria localmente...</span>
+                      {/* Progress Indicator Cycle */}
+                      <div className="mx-auto w-full max-w-[240px] space-y-3 pt-2">
+                        <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-muted-foreground/60">
+                          <div className={`flex items-center gap-1.5 transition-colors ${faceCycleStatus === 'detecting' ? 'text-primary' : (faceCycleStatus !== 'idle' ? 'text-success' : '')}`}>
+                            <div className={`size-1.5 rounded-full ${faceCycleStatus === 'detecting' ? 'bg-primary animate-pulse' : (faceCycleStatus !== 'idle' ? 'bg-success' : 'bg-muted')}`} />
+                            Detecção
+                          </div>
+                          <div className="h-px flex-1 mx-2 bg-border/50" />
+                          <div className={`flex items-center gap-1.5 transition-colors ${faceCycleStatus === 'capturing' ? 'text-primary' : (['verifying', 'error'].includes(faceCycleStatus) ? 'text-success' : '')}`}>
+                            <div className={`size-1.5 rounded-full ${faceCycleStatus === 'capturing' ? 'bg-primary animate-pulse' : (['verifying', 'error'].includes(faceCycleStatus) ? 'bg-success' : 'bg-muted')}`} />
+                            Captura
+                          </div>
+                          <div className="h-px flex-1 mx-2 bg-border/50" />
+                          <div className={`flex items-center gap-1.5 transition-colors ${faceCycleStatus === 'verifying' ? 'text-primary' : (faceCycleStatus === 'error' ? 'text-destructive' : '')}`}>
+                            <div className={`size-1.5 rounded-full ${faceCycleStatus === 'verifying' ? 'bg-primary animate-pulse' : (faceCycleStatus === 'error' ? 'bg-destructive' : 'bg-muted')}`} />
+                            Verificação
+                          </div>
                         </div>
-                      )}
+
+                        {faceCycleStatus === 'error' && cycleError && (
+                          <div className="rounded-lg bg-destructive/10 p-2.5 text-[10px] text-destructive flex gap-2 animate-in fade-in slide-in-from-top-1">
+                            <AlertTriangle className="size-3.5 shrink-0" />
+                            <p className="leading-relaxed">{cycleError}</p>
+                          </div>
+                        )}
+                        
+                        {faceCycleStatus === 'verifying' && (
+                          <div className="flex items-center justify-center gap-2 text-[10px] font-medium text-primary animate-pulse">
+                            <Loader2 className="size-3 animate-spin" />
+                            <span>Processando biometria...</span>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="flex flex-col gap-2">
                         {!capturedImage ? (
@@ -781,6 +815,8 @@ function SignPage() {
                               }
                               
                               setVerifyingFace(true);
+                              setFaceCycleStatus('verifying');
+                              setCycleError(null);
                               try {
                                 // Double check if models are loaded just in case
                                 await loadModels();
@@ -791,13 +827,19 @@ function SignPage() {
 
                                 const faceResult = await getFaceEmbedding(videoRef.current);
                                 if (!faceResult) {
-                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera, verifique a iluminação e remova acessórios como óculos escuros.");
+                                  const errMsg = "Nenhum rosto detectado. Posicione-se bem em frente à câmera, verifique a iluminação e remova acessórios como óculos escuros.";
+                                  toast.error(errMsg);
+                                  setCycleError(errMsg);
+                                  setFaceCycleStatus('error');
                                   setVerifyingFace(false);
                                   return;
                                 }
 
                                 if (faceResult.faceCount > 1) {
-                                  toast.error("Múltiplos rostos detectados. Certifique-se de estar sozinho na imagem.");
+                                  const errMsg = "Múltiplos rostos detectados. Certifique-se de estar sozinho na imagem.";
+                                  toast.error(errMsg);
+                                  setCycleError(errMsg);
+                                  setFaceCycleStatus('error');
                                   setVerifyingFace(false);
                                   return;
                                 }
@@ -831,9 +873,12 @@ function SignPage() {
                                 setFacialAuthToken(result.facialAuthToken);
                                 const displayStatus = employee?.facial_status || doc.facial_status;
                                 toast.success(displayStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
+                                setFaceCycleStatus('idle');
                                 setStep("sign");
                               } catch (err: any) {
                                 toast.error(err.message);
+                                setCycleError(err.message);
+                                setFaceCycleStatus('error');
                                 setCapturedImage(null);
                               } finally {
                                 setVerifyingFace(false);
