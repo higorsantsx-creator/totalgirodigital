@@ -722,6 +722,51 @@ export type Database = {
           },
         ]
       }
+      facial_auth_sessions: {
+        Row: {
+          created_at: string
+          document_id: string
+          employee_id: string
+          expires_at: string
+          id: string
+          token_hash: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          employee_id: string
+          expires_at: string
+          id?: string
+          token_hash: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          employee_id?: string
+          expires_at?: string
+          id?: string
+          token_hash?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facial_auth_sessions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facial_auth_sessions_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       facial_validation_logs: {
         Row: {
           created_at: string | null

@@ -62,19 +62,19 @@ export const Route = createFileRoute("/api/public/face/verify")({
           const result = await facialService.processFace(image, "verify", storedEmbedding);
 
           if (result.error) {
-            await (facialService as any).logAttempt(employee.id, doc.id, false, result.error, null, ip);
+            await facialService.logAttempt(employee.id, doc.id, false, result.error, null, ip);
             return Response.json({ error: result.error }, { status: 400 });
           }
 
           if (!result.verified) {
-            await (facialService as any).logAttempt(employee.id, doc.id, false, "Face não corresponde", { distance: result.distance }, ip);
+            await facialService.logAttempt(employee.id, doc.id, false, "Face não corresponde", { distance: result.distance }, ip);
             return Response.json({ verified: false, error: "Validação facial falhou. Tente novamente." }, { status: 401 });
           }
 
-          await (facialService as any).logAttempt(employee.id, doc.id, true, undefined, null, ip);
+          await facialService.logAttempt(employee.id, doc.id, true, undefined, null, ip);
           
           // 4. Create temporary signing token
-          const facialAuthToken = await (facialService as any).createFacialAuthToken(doc.id, employee.id);
+          const facialAuthToken = await facialService.createFacialAuthToken(doc.id, employee.id);
           
           return Response.json({ verified: true, facialAuthToken });
         } catch (e) {
