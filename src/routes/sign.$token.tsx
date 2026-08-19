@@ -129,19 +129,26 @@ function SignPage() {
       const constraints = { 
         video: { 
           facingMode: "user",
-          width: { ideal: 640 },
-          height: { ideal: 640 }
+          width: { min: 320, ideal: 640, max: 1280 },
+          height: { min: 240, ideal: 640, max: 1280 },
+          frameRate: { ideal: 30 }
         } 
       };
 
+      console.log("Solicitando permissão da câmera com constraints:", constraints);
+
       navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
+          console.log("Câmera acessada com sucesso. Stream ID:", stream.id);
           setCameraError(null);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
             // Ensure video plays and metadata is loaded
             videoRef.current.onloadedmetadata = () => {
-              videoRef.current?.play().catch(console.error);
+              console.log("Metadados do vídeo carregados. Dimensões:", videoRef.current?.videoWidth, "x", videoRef.current?.videoHeight);
+              videoRef.current?.play()
+                .then(() => console.log("Reprodução do vídeo iniciada"))
+                .catch(err => console.error("Falha ao iniciar reprodução:", err));
             };
           }
         })
@@ -747,8 +754,9 @@ function SignPage() {
                               autoPlay
                               playsInline
                               muted
-                              className="h-full w-full object-cover scale-x-[-1]"
+                              className="h-full w-full object-cover scale-x-[-1] bg-slate-900"
                               onCanPlay={() => {
+                                console.log("onCanPlay disparado para o vídeo");
                                 videoRef.current?.play().catch(console.error);
                               }}
                             />

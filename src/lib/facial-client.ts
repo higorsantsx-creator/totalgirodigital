@@ -14,9 +14,9 @@ export const loadModels = async () => {
   if (modelsLoadingPromise) return modelsLoadingPromise;
 
   modelsLoadingPromise = (async () => {
-    const MODEL_URL = '/models';
+    const MODEL_URL = window.location.origin + '/models';
     try {
-      console.log('Carregando modelos face-api de:', MODEL_URL);
+      console.log('Carregando modelos face-api de URL absoluta:', MODEL_URL);
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
