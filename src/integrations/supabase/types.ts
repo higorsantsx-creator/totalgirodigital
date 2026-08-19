@@ -132,6 +132,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          access_code: string | null
           address: string | null
           company: string | null
           created_at: string
@@ -151,6 +152,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_code?: string | null
           address?: string | null
           company?: string | null
           created_at?: string
@@ -170,6 +172,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_code?: string | null
           address?: string | null
           company?: string | null
           created_at?: string
