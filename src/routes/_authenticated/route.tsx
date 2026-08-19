@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated")({
     
     // Skip auth guard for public signing paths if they somehow hit this layout
     if (location.pathname.startsWith("/sign/")) {
+      logDiagnostic("auth.guard.skip", { route: "_authenticated", pathname: location.pathname });
       return {};
     }
 
