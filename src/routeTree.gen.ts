@@ -28,8 +28,6 @@ import { Route as AuthenticatedReportsCompetenciasRouteImport } from './routes/_
 import { Route as AuthenticatedReportsAuditRouteImport } from './routes/_authenticated/reports.audit'
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
-import { Route as ApiPublicSignIndexRouteImport } from './routes/api/public/sign/index'
-import { Route as ApiPublicSignConfirmRouteImport } from './routes/api/public/sign/confirm'
 import { Route as ApiPublicFaceVerifyRouteImport } from './routes/api/public/face/verify'
 import { Route as ApiPublicFaceRegisterRouteImport } from './routes/api/public/face/register'
 
@@ -135,16 +133,6 @@ const AuthenticatedDocumentsIdRoute =
     path: '/documents/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicSignIndexRoute = ApiPublicSignIndexRouteImport.update({
-  id: '/api/public/sign/',
-  path: '/api/public/sign/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicSignConfirmRoute = ApiPublicSignConfirmRouteImport.update({
-  id: '/api/public/sign/confirm',
-  path: '/api/public/sign/confirm',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicFaceVerifyRoute = ApiPublicFaceVerifyRouteImport.update({
   id: '/api/public/face/verify',
   path: '/api/public/face/verify',
@@ -177,8 +165,6 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
-  '/api/public/sign/confirm': typeof ApiPublicSignConfirmRoute
-  '/api/public/sign/': typeof ApiPublicSignIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -200,8 +186,6 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
-  '/api/public/sign/confirm': typeof ApiPublicSignConfirmRoute
-  '/api/public/sign': typeof ApiPublicSignIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -226,8 +210,6 @@ export interface FileRoutesById {
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
-  '/api/public/sign/confirm': typeof ApiPublicSignConfirmRoute
-  '/api/public/sign/': typeof ApiPublicSignIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -252,8 +234,6 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/api/public/face/register'
     | '/api/public/face/verify'
-    | '/api/public/sign/confirm'
-    | '/api/public/sign/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -275,8 +255,6 @@ export interface FileRouteTypes {
     | '/reports'
     | '/api/public/face/register'
     | '/api/public/face/verify'
-    | '/api/public/sign/confirm'
-    | '/api/public/sign'
   id:
     | '__root__'
     | '/'
@@ -300,8 +278,6 @@ export interface FileRouteTypes {
     | '/_authenticated/reports/'
     | '/api/public/face/register'
     | '/api/public/face/verify'
-    | '/api/public/sign/confirm'
-    | '/api/public/sign/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -313,8 +289,6 @@ export interface RootRouteChildren {
   SignTokenRoute: typeof SignTokenRoute
   ApiPublicFaceRegisterRoute: typeof ApiPublicFaceRegisterRoute
   ApiPublicFaceVerifyRoute: typeof ApiPublicFaceVerifyRoute
-  ApiPublicSignConfirmRoute: typeof ApiPublicSignConfirmRoute
-  ApiPublicSignIndexRoute: typeof ApiPublicSignIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -452,20 +426,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/sign/': {
-      id: '/api/public/sign/'
-      path: '/api/public/sign'
-      fullPath: '/api/public/sign/'
-      preLoaderRoute: typeof ApiPublicSignIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/sign/confirm': {
-      id: '/api/public/sign/confirm'
-      path: '/api/public/sign/confirm'
-      fullPath: '/api/public/sign/confirm'
-      preLoaderRoute: typeof ApiPublicSignConfirmRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/face/verify': {
       id: '/api/public/face/verify'
       path: '/api/public/face/verify'
@@ -536,8 +496,6 @@ const rootRouteChildren: RootRouteChildren = {
   SignTokenRoute: SignTokenRoute,
   ApiPublicFaceRegisterRoute: ApiPublicFaceRegisterRoute,
   ApiPublicFaceVerifyRoute: ApiPublicFaceVerifyRoute,
-  ApiPublicSignConfirmRoute: ApiPublicSignConfirmRoute,
-  ApiPublicSignIndexRoute: ApiPublicSignIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
