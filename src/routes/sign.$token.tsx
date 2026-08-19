@@ -57,7 +57,7 @@ function SignPage() {
 
 
   useEffect(() => {
-    fetch(`/api/public/sign/${token}`)
+    fetch(`/api/public/sign/${token}/`)
       .then(async (res) => {
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
