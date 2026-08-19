@@ -446,11 +446,11 @@ function SignPage() {
                               setQualityError(null);
 
                               try {
-                                const { validateFaceQuality, getFaceEmbedding } = await import("@/lib/face-api.client");
+                                const faceApi = await import("@/lib/face-api.client");
                                 
                                 // 1. Validate quality first
                                 // @ts-ignore
-                                const quality = await (await import("@/lib/face-api.client")).validateFaceQuality(videoRef.current);
+                                const quality = await faceApi.validateFaceQuality(videoRef.current);
                                 if (!quality.valid) {
                                   setQualityError(quality.error || "Erro de qualidade facial");
                                   setVerifyingFace(false);
