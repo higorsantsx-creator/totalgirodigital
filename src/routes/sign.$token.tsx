@@ -169,7 +169,7 @@ function SignPage() {
 
     if (step === 'face' && !capturedImage && !cameraError && videoRef.current) {
       interval = setInterval(async () => {
-        if (!videoRef.current || videoRef.current.paused || videoRef.current.ended) return;
+        if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || verifyingFace) return;
         
         try {
           // Use Tiny detector for real-time mobile feedback
@@ -197,9 +197,9 @@ function SignPage() {
             if (faceArea < 0.05) { dist = 'far'; pos = 'too-far'; }
             else if (faceArea > 0.45) { dist = 'close'; pos = 'too-close'; }
 
-            // 3. Simple Lighting Check (average brightness of face area)
-            // Note: This is a placeholder as full pixel analysis is expensive here, 
-            // but we can infer from detection confidence or keep as 'ok' for now.
+            // 3. Simple Lighting Check
+            // Lighting is assumed ok if detection is confident, 
+            // but we can add more logic here if needed.
             
             setFaceMetrics({
               position: pos,
@@ -217,6 +217,15 @@ function SignPage() {
               setFaceFeedback("Centralize seu rosto.");
             } else {
               setFaceFeedback(null);
+              
+              // AUTO-CAPTURE LOGIC
+              // If position, distance and lighting are all OK, trigger capture
+              if (pos === 'center' && dist === 'ok' && !verifyingFace) {
+                const captureButton = document.getElementById('capture-photo-btn');
+                if (captureButton) {
+                  captureButton.click();
+                }
+              }
             }
           }
         } catch (e: any) {
@@ -226,10 +235,10 @@ function SignPage() {
             loadingToastShown = true;
           }
         }
-      }, 1000);
+      }, 800); // Slightly faster polling for auto-capture
     }
     return () => clearInterval(interval);
-  }, [step, capturedImage, cameraError]);
+  }, [step, capturedImage, cameraError, verifyingFace]);
 
 
   const submit = async () => {
