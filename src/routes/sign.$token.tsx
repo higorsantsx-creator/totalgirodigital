@@ -788,6 +788,8 @@ function SignPage() {
                               }
                               
                               setVerifyingFace(true);
+                              setFaceCycleStatus('verifying');
+                              setCycleError(null);
                               try {
                                 // Double check if models are loaded just in case
                                 await loadModels();
@@ -798,13 +800,19 @@ function SignPage() {
 
                                 const faceResult = await getFaceEmbedding(videoRef.current);
                                 if (!faceResult) {
-                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera, verifique a iluminação e remova acessórios como óculos escuros.");
+                                  const errMsg = "Nenhum rosto detectado. Posicione-se bem em frente à câmera, verifique a iluminação e remova acessórios como óculos escuros.";
+                                  toast.error(errMsg);
+                                  setCycleError(errMsg);
+                                  setFaceCycleStatus('error');
                                   setVerifyingFace(false);
                                   return;
                                 }
 
                                 if (faceResult.faceCount > 1) {
-                                  toast.error("Múltiplos rostos detectados. Certifique-se de estar sozinho na imagem.");
+                                  const errMsg = "Múltiplos rostos detectados. Certifique-se de estar sozinho na imagem.";
+                                  toast.error(errMsg);
+                                  setCycleError(errMsg);
+                                  setFaceCycleStatus('error');
                                   setVerifyingFace(false);
                                   return;
                                 }
@@ -838,9 +846,12 @@ function SignPage() {
                                 setFacialAuthToken(result.facialAuthToken);
                                 const displayStatus = employee?.facial_status || doc.facial_status;
                                 toast.success(displayStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
+                                setFaceCycleStatus('idle');
                                 setStep("sign");
                               } catch (err: any) {
                                 toast.error(err.message);
+                                setCycleError(err.message);
+                                setFaceCycleStatus('error');
                                 setCapturedImage(null);
                               } finally {
                                 setVerifyingFace(false);
