@@ -1,5 +1,11 @@
 import * as faceapi from '@vladmandic/face-api';
 
+// Export for debugging purposes
+if (typeof window !== 'undefined') {
+  (window as any).faceapi = faceapi;
+}
+
+
 let modelsLoaded = false;
 let modelsLoadingPromise: Promise<void> | null = null;
 

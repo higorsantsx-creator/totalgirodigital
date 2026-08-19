@@ -568,9 +568,16 @@ function SignPage() {
                               
                               setVerifyingFace(true);
                               try {
+                                // Double check if models are loaded just in case
+                                await loadModels();
+
+                                if (!videoRef.current || videoRef.current.readyState < 2) {
+                                  throw new Error("Câmera não está pronta para captura. Tente novamente em instantes.");
+                                }
+
                                 const faceResult = await getFaceEmbedding(videoRef.current);
                                 if (!faceResult) {
-                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera e verifique a iluminação.");
+                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera, verifique a iluminação e remova acessórios como óculos escuros.");
                                   setVerifyingFace(false);
                                   return;
                                 }
