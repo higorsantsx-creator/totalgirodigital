@@ -16,21 +16,32 @@ export const loadModels = async () => {
   modelsLoaded = true;
 };
 
-export const getFaceEmbedding = async (input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement): Promise<number[] | null> => {
+export type FaceDetectionResult = {
+  embedding: number[];
+  faceCount: number;
+  box: faceapi.Box;
+};
+
+export const getFaceEmbedding = async (
+  input: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement
+): Promise<FaceDetectionResult | null> => {
   await loadModels();
   
-  const detection = await faceapi.detectSingleFace(input)
+  const detections = await faceapi.detectAllFaces(input)
     .withFaceLandmarks()
-    .withFaceDescriptor();
+    .withFaceDescriptors();
     
-  if (!detection) return null;
+  if (detections.length === 0) return null;
   
-  return Array.from(detection.descriptor);
+  return {
+    embedding: Array.from(detections[0].descriptor),
+    faceCount: detections.length,
+    box: detections[0].detection.box
+  };
 };
 
 export const compareEmbeddings = (embedding1: number[], embedding2: number[]): number => {
-  // Use face-api.js utility for euclidean distance
   return faceapi.euclideanDistance(embedding1, embedding2);
 };
 
-export const DISTANCE_THRESHOLD = 0.6; // Standard threshold for ArcFace/FaceAPI
+export const DISTANCE_THRESHOLD = 0.6;
