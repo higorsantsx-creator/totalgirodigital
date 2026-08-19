@@ -51,7 +51,8 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           return Response.json({ ok: true });
         }
 
-        if (!body.facial_auth_token || !doc.client_id) {
+        const recipientId = doc.client_id;
+        if (!body.facial_auth_token || !recipientId) {
           return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
         }
 
