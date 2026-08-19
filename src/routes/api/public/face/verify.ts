@@ -30,7 +30,7 @@ export const Route = createFileRoute("/api/public/face/verify")({
         const { data: employee, error: empErr } = await supabaseAdmin
           .from("clients")
           .select("id, facial_embedding, facial_status, owner_id")
-          .eq("access_code", access_code)
+          .eq("access_code" as any, access_code)
           .eq("owner_id", doc.owner_id)
           .maybeSingle();
 
