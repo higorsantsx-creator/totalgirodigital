@@ -28,8 +28,10 @@ import { Route as AuthenticatedReportsCompetenciasRouteImport } from './routes/_
 import { Route as AuthenticatedReportsAuditRouteImport } from './routes/_authenticated/reports.audit'
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
+import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign.$token'
 import { Route as ApiPublicFaceVerifyRouteImport } from './routes/api/public/face/verify'
 import { Route as ApiPublicFaceRegisterRouteImport } from './routes/api/public/face/register'
+import { Route as ApiPublicSignTokenConfirmRouteImport } from './routes/api/public/sign.$token.confirm'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -133,6 +135,11 @@ const AuthenticatedDocumentsIdRoute =
     path: '/documents/$id',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicSignTokenRoute = ApiPublicSignTokenRouteImport.update({
+  id: '/api/public/sign/$token',
+  path: '/api/public/sign/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicFaceVerifyRoute = ApiPublicFaceVerifyRouteImport.update({
   id: '/api/public/face/verify',
   path: '/api/public/face/verify',
@@ -143,6 +150,12 @@ const ApiPublicFaceRegisterRoute = ApiPublicFaceRegisterRouteImport.update({
   path: '/api/public/face/register',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSignTokenConfirmRoute =
+  ApiPublicSignTokenConfirmRouteImport.update({
+    id: '/confirm',
+    path: '/confirm',
+    getParentRoute: () => ApiPublicSignTokenRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,6 +178,8 @@ export interface FileRoutesByFullPath {
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
+  '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
+  '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -186,6 +201,8 @@ export interface FileRoutesByTo {
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
+  '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
+  '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -210,6 +227,8 @@ export interface FileRoutesById {
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/api/public/face/register': typeof ApiPublicFaceRegisterRoute
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
+  '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
+  '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -234,6 +253,8 @@ export interface FileRouteTypes {
     | '/reports/'
     | '/api/public/face/register'
     | '/api/public/face/verify'
+    | '/api/public/sign/$token'
+    | '/api/public/sign/$token/confirm'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -255,6 +276,8 @@ export interface FileRouteTypes {
     | '/reports'
     | '/api/public/face/register'
     | '/api/public/face/verify'
+    | '/api/public/sign/$token'
+    | '/api/public/sign/$token/confirm'
   id:
     | '__root__'
     | '/'
@@ -278,6 +301,8 @@ export interface FileRouteTypes {
     | '/_authenticated/reports/'
     | '/api/public/face/register'
     | '/api/public/face/verify'
+    | '/api/public/sign/$token'
+    | '/api/public/sign/$token/confirm'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -289,6 +314,7 @@ export interface RootRouteChildren {
   SignTokenRoute: typeof SignTokenRoute
   ApiPublicFaceRegisterRoute: typeof ApiPublicFaceRegisterRoute
   ApiPublicFaceVerifyRoute: typeof ApiPublicFaceVerifyRoute
+  ApiPublicSignTokenRoute: typeof ApiPublicSignTokenRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -426,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDocumentsIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/sign/$token': {
+      id: '/api/public/sign/$token'
+      path: '/api/public/sign/$token'
+      fullPath: '/api/public/sign/$token'
+      preLoaderRoute: typeof ApiPublicSignTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/face/verify': {
       id: '/api/public/face/verify'
       path: '/api/public/face/verify'
@@ -439,6 +472,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/face/register'
       preLoaderRoute: typeof ApiPublicFaceRegisterRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sign/$token/confirm': {
+      id: '/api/public/sign/$token/confirm'
+      path: '/confirm'
+      fullPath: '/api/public/sign/$token/confirm'
+      preLoaderRoute: typeof ApiPublicSignTokenConfirmRouteImport
+      parentRoute: typeof ApiPublicSignTokenRoute
     }
   }
 }
@@ -487,6 +527,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiPublicSignTokenRouteChildren {
+  ApiPublicSignTokenConfirmRoute: typeof ApiPublicSignTokenConfirmRoute
+}
+
+const ApiPublicSignTokenRouteChildren: ApiPublicSignTokenRouteChildren = {
+  ApiPublicSignTokenConfirmRoute: ApiPublicSignTokenConfirmRoute,
+}
+
+const ApiPublicSignTokenRouteWithChildren =
+  ApiPublicSignTokenRoute._addFileChildren(ApiPublicSignTokenRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -496,6 +547,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignTokenRoute: SignTokenRoute,
   ApiPublicFaceRegisterRoute: ApiPublicFaceRegisterRoute,
   ApiPublicFaceVerifyRoute: ApiPublicFaceVerifyRoute,
+  ApiPublicSignTokenRoute: ApiPublicSignTokenRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
