@@ -4,12 +4,20 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
   server: {
     handlers: {
       POST: async ({ params, request }) => {
-        const body = (await request.json()) as { signature_data_url?: string; action?: "sign" | "decline"; reason?: string; signer_name?: string };
+        const body = (await request.json()) as { 
+          signature_data_url?: string; 
+          action?: "sign" | "decline"; 
+          reason?: string; 
+          signer_name?: string;
+          facial_auth_token?: string;
+        };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { facialService } = await import("@/lib/facial.server");
+
 
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("id, status, owner_id, file_path")
+          .select("id, status, owner_id, file_path, recipient_id")
           .eq("access_token", params.token)
           .maybeSingle();
         if (error || !doc) return Response.json({ error: "Documento não encontrado" }, { status: 404 });
@@ -50,6 +58,22 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         if (!body.signature_data_url) {
           return Response.json({ error: "Assinatura obrigatória" }, { status: 400 });
         }
+
+        // 7. PROTECT BACKEND: Verify facial authorization token
+        if (!body.facial_auth_token || !doc.recipient_id) {
+          return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
+        }
+
+        const isFacialValid = await facialService.validateFacialAuthToken(
+          body.facial_auth_token, 
+          doc.id, 
+          doc.recipient_id
+        );
+
+        if (!isFacialValid) {
+          return Response.json({ error: "Sessão de validação facial expirada ou inválida. Repita a validação." }, { status: 403 });
+        }
+
         const match = body.signature_data_url.match(/^data:image\/png;base64,(.+)$/);
         if (!match) return Response.json({ error: "Formato inválido" }, { status: 400 });
         const buf = Buffer.from(match[1], "base64");
