@@ -9,7 +9,7 @@ import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Sen
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-import { getFaceEmbedding } from "@/lib/facial-client";
+import { getFaceEmbedding, loadModels } from "@/lib/facial-client";
 import { Checkbox } from "@/components/ui/checkbox";
 
 
