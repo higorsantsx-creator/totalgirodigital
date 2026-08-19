@@ -10,6 +10,7 @@ import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
 import { getFaceEmbedding, loadModels } from "@/lib/facial-client";
+import { checkFacialConfig } from "@/lib/facial-config.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 
 
@@ -302,6 +303,14 @@ function SignPage() {
     setPrecheckStatus({ permission: 'pending', camera: 'pending', models: 'pending' });
 
     try {
+      // 0. Server-side config check
+      const config = await checkFacialConfig();
+      if (!config.ok) {
+        setPrecheckStatus(prev => ({ ...prev, models: 'fail' }));
+        toast.error(`Erro de configuração no servidor: ${config.errors.join(", ")}`);
+        return;
+      }
+
       // 1. Models check
       try {
         await loadModels();
