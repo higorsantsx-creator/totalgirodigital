@@ -1,40 +1,30 @@
-# Plano: Reorganização Premium da Interface de Funcionários
+# Plano de Implementação: Validação Facial com DeepFace
 
-Este plano descreve a reformulação da página de funcionários para oferecer uma experiência corporativa premium, com filtros dinâmicos por unidade, contadores automáticos e uma interface moderna e responsiva.
+Implementação do fluxo completo de identificação por código e validação biométrica facial para assinatura de documentos.
 
-## Mudanças do Usuário
+## Alterações no Banco de Dados
+- **Tabela `clients`**: Adição de campos `facial_status`, `facial_embedding`, `facial_model` e `facial_registered_at`.
+- **Tabela `facial_validation_logs`**: Criação para auditoria de tentativas de validação.
+- **Segurança**: Políticas RLS para proteger dados biométricos.
 
-### Interface e Filtros
-- Substituir o seletor simples de unidade por uma barra de filtros moderna com "Pills" ou botões elegantes.
-- Exibir a quantidade de funcionários em cada unidade diretamente no filtro (ex: "Posto Pilar — 12 funcionários").
-- Implementar a opção "Todas as unidades" com o total geral.
-- Adicionar animações suaves de transição ao alternar filtros e feedback visual claro para a seleção ativa.
+## Integração Backend (DeepFace)
+- **Serviço Externo**: Criação de um utilitário em `src/lib/facial.server.ts` para comunicação com a API DeepFace.
+- **Novos Endpoints**:
+  - `POST /api/public/face/register`: Registro inicial da face.
+  - `POST /api/public/face/verify`: Verificação da identidade antes da assinatura.
+- **Segurança**: Armazenamento apenas de embeddings, validação de anti-spoofing e tokens de sessão.
 
-### Busca e Lista
-- Integrar a barra de pesquisa com o filtro de unidade (busca refinada).
-- Permitir busca por nome e telefone.
-- Redesenhar a lista de funcionários com um visual mais limpo, usando cards ou uma tabela estilizada com melhor hierarquia visual e espaçamento.
-- Garantir responsividade total (rolagem horizontal suave para filtros no celular).
-
-### Dados e Integridade
-- Manter todos os registros existentes e a associação atual entre funcionários e unidades.
-- Garantir que novas unidades cadastradas via formulário apareçam automaticamente nos filtros.
+## Interface do Usuário (Frontend)
+- **Painel Administrativo (`clients.tsx`)**:
+  - Exibição do Código de Acesso e status facial.
+  - Filtros por status facial (Pendente/Cadastrado).
+  - Opção para resetar biometria.
+- **Fluxo de Assinatura (`sign.$token.tsx`)**:
+  - Nova etapa de identificação por código.
+  - Interface de captura de câmera com guia visual e feedback em tempo real.
+  - Integração com o processo de assinatura existente após validação.
 
 ## Detalhes Técnicos
-
-### Componentes e Estilo
-- **Tailwind CSS v4**: Utilizar para o design "Navy Trust" e estilização premium.
-- **Lucide React**: Ícones para busca, telefone, ações e unidades.
-- **Framer Motion**: Adicionar para as animações suaves (necessita instalação).
-- **Layout**: Uso de `flex-nowrap overflow-x-auto` para os filtros em dispositivos móveis.
-
-### Lógica de Estado
-- Manter o uso de `tanstack-query` para gerenciamento de dados do Supabase.
-- Cálculo de contadores em tempo real via `useMemo`.
-- Sincronização de filtros via estado local ou URL params para permitir compartilhamento de links filtrados.
-
-### Arquivo a ser modificado
-- `src/routes/_authenticated/clients.tsx`: Redesigned component logic and UI.
-
----
-Vou prosseguir com a instalação do `framer-motion` e a implementação das melhorias visuais.
+- **DeepFace**: Utilização do modelo ArcFace (512 dimensões).
+- **Anti-spoofing**: Verificação de vivacidade ativada no backend.
+- **Responsividade**: Mobile-first para garantir funcionamento em smartphones.
