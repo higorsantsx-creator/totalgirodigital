@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/api/public/sign/")({
+export const Route = createFileRoute("/api/public/sign/$token")({
   server: {
     handlers: {
       GET: async ({ params }) => {
