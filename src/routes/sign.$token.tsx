@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock, Info, Check } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock, Info, Check, AlertTriangle, MonitorOff } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
@@ -60,6 +60,8 @@ function SignPage() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
+  const [cameraError, setCameraError] = useState<{ type: 'blocked' | 'incompatible' | 'error', message: string } | null>(null);
+  const [faceFeedback, setFaceFeedback] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -443,23 +445,39 @@ function SignPage() {
                         </p>
                       </div>
                       
-                      <div className="relative mx-auto aspect-square w-full max-w-[280px] overflow-hidden rounded-full border-4 border-muted bg-black">
-                        {!capturedImage ? (
+                      <div className="relative mx-auto aspect-square w-full max-w-[280px] overflow-hidden rounded-full border-4 border-muted bg-black shadow-inner">
+                        {cameraError ? (
+                          <div className="flex h-full w-full flex-col items-center justify-center p-6 text-center text-white bg-slate-900">
+                            {cameraError.type === 'incompatible' ? (
+                              <MonitorOff className="mb-2 size-8 text-warning" />
+                            ) : (
+                              <Lock className="mb-2 size-8 text-destructive" />
+                            )}
+                            <p className="text-xs font-medium leading-relaxed">
+                              {cameraError.message}
+                            </p>
+                          </div>
+                        ) : !capturedImage ? (
                           <>
                             <video
                               ref={videoRef}
                               autoPlay
                               playsInline
                               muted
-                              className="h-full w-full object-cover"
+                              className="h-full w-full object-cover scale-x-[-1]"
                               onCanPlay={() => {
                                 videoRef.current?.play().catch(console.error);
                               }}
                             />
                             <div className="pointer-events-none absolute inset-0 border-[16px] border-black/20 rounded-full" />
+                            {faceFeedback && (
+                              <div className="absolute inset-x-0 bottom-4 mx-auto w-fit rounded-full bg-black/60 px-3 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
+                                {faceFeedback}
+                              </div>
+                            )}
                           </>
                         ) : (
-                          <img src={capturedImage} className="h-full w-full object-cover" alt="Captura" />
+                          <img src={capturedImage} className="h-full w-full object-cover scale-x-[-1]" alt="Captura" />
                         )}
                       </div>
 
@@ -474,7 +492,7 @@ function SignPage() {
                         {!capturedImage ? (
                           <Button 
                             className="w-full" 
-                            disabled={verifyingFace}
+                            disabled={verifyingFace || !!cameraError}
                             onClick={async () => {
                               if (!videoRef.current || videoRef.current.videoWidth === 0) {
                                 toast.error("Câmera ainda carregando...");
@@ -483,12 +501,20 @@ function SignPage() {
                               
                               setVerifyingFace(true);
                               try {
-                                const embedding = await getFaceEmbedding(videoRef.current);
-                                if (!embedding) {
-                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera.");
+                                const result = await getFaceEmbedding(videoRef.current);
+                                if (!result) {
+                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera e verifique a iluminação.");
                                   setVerifyingFace(false);
                                   return;
                                 }
+
+                                if (result.faceCount > 1) {
+                                  toast.error("Múltiplos rostos detectados. Certifique-se de estar sozinho na imagem.");
+                                  setVerifyingFace(false);
+                                  return;
+                                }
+
+                                const embedding = result.embedding;
 
                                 const canvas = document.createElement("canvas");
                                 canvas.width = videoRef.current.videoWidth;
@@ -530,7 +556,7 @@ function SignPage() {
                             {verifyingFace ? "Validando..." : "Capturar foto"}
                           </Button>
                         ) : (
-                          <Button variant="outline" className="w-full" onClick={() => setCapturedImage(null)} disabled={verifyingFace}>
+                          <Button variant="outline" className="w-full" onClick={() => { setCapturedImage(null); setFaceFeedback(null); }} disabled={verifyingFace}>
                             Tentar Novamente
                           </Button>
                         )}
