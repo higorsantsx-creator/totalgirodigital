@@ -5,8 +5,8 @@ export const Route = createFileRoute("/api/public/face/register")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { embedding, access_token, access_code } = (await request.json()) as { 
-          embedding: number[]; 
+        const { image, access_token, access_code } = (await request.json()) as { 
+          image: string; 
           access_token: string;
           access_code: string;
         };
@@ -56,14 +56,16 @@ export const Route = createFileRoute("/api/public/face/register")({
             return Response.json({ error: "Muitas tentativas falhas. Tente novamente em 1 hora." }, { status: 429 });
         }
 
-        // 4. Validate embedding presence
-        if (!embedding || !Array.isArray(embedding) || embedding.length === 0) {
-          await facialService.logAttempt(employee.id, doc.id, false, "Embedding ausente ou inválido", null, ip);
-          return Response.json({ error: "Falha no processamento biométrico local" }, { status: 400 });
+        // 4. Process image with DeepFace
+        const result = await facialService.processFace(image, "register");
+
+        if (result.error || !result.embedding) {
+          await (facialService as any).logAttempt(employee.id, doc.id, false, result.error || "Erro no processamento facial", null, ip);
+          return Response.json({ error: result.error || "Falha ao processar face" }, { status: 400 });
         }
 
         // 5. Update employee record with PROTECTED embedding
-        const encryptedEmbedding = encryptEmbedding(embedding);
+        const encryptedEmbedding = encryptEmbedding(result.embedding);
         const { error: updErr } = await supabaseAdmin
           .from("clients")
           .update({
@@ -76,10 +78,10 @@ export const Route = createFileRoute("/api/public/face/register")({
 
         if (updErr) return Response.json({ error: updErr.message }, { status: 500 });
 
-        await facialService.logAttempt(employee.id, doc.id, true, undefined, null, ip);
+        await (facialService as any).logAttempt(employee.id, doc.id, true, undefined, null, ip);
         
         // 6. Create temporary signing token
-        const facialAuthToken = await facialService.createFacialAuthToken(doc.id, employee.id);
+        const facialAuthToken = await (facialService as any).createFacialAuthToken(doc.id, employee.id);
         
         return Response.json({ success: true, facialAuthToken });
       }

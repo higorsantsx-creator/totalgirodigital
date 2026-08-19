@@ -31,7 +31,6 @@ import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenti
 import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign.$token'
 import { Route as ApiPublicFaceVerifyRouteImport } from './routes/api/public/face/verify'
 import { Route as ApiPublicFaceRegisterRouteImport } from './routes/api/public/face/register'
-import { Route as ApiPublicSignTokenValidateCodeRouteImport } from './routes/api/public/sign.$token.validate-code'
 import { Route as ApiPublicSignTokenConfirmRouteImport } from './routes/api/public/sign.$token.confirm'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -151,12 +150,6 @@ const ApiPublicFaceRegisterRoute = ApiPublicFaceRegisterRouteImport.update({
   path: '/api/public/face/register',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSignTokenValidateCodeRoute =
-  ApiPublicSignTokenValidateCodeRouteImport.update({
-    id: '/validate-code',
-    path: '/validate-code',
-    getParentRoute: () => ApiPublicSignTokenRoute,
-  } as any)
 const ApiPublicSignTokenConfirmRoute =
   ApiPublicSignTokenConfirmRouteImport.update({
     id: '/confirm',
@@ -187,7 +180,6 @@ export interface FileRoutesByFullPath {
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
-  '/api/public/sign/$token/validate-code': typeof ApiPublicSignTokenValidateCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,7 +203,6 @@ export interface FileRoutesByTo {
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
-  '/api/public/sign/$token/validate-code': typeof ApiPublicSignTokenValidateCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -238,7 +229,6 @@ export interface FileRoutesById {
   '/api/public/face/verify': typeof ApiPublicFaceVerifyRoute
   '/api/public/sign/$token': typeof ApiPublicSignTokenRouteWithChildren
   '/api/public/sign/$token/confirm': typeof ApiPublicSignTokenConfirmRoute
-  '/api/public/sign/$token/validate-code': typeof ApiPublicSignTokenValidateCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -265,7 +255,6 @@ export interface FileRouteTypes {
     | '/api/public/face/verify'
     | '/api/public/sign/$token'
     | '/api/public/sign/$token/confirm'
-    | '/api/public/sign/$token/validate-code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -289,7 +278,6 @@ export interface FileRouteTypes {
     | '/api/public/face/verify'
     | '/api/public/sign/$token'
     | '/api/public/sign/$token/confirm'
-    | '/api/public/sign/$token/validate-code'
   id:
     | '__root__'
     | '/'
@@ -315,7 +303,6 @@ export interface FileRouteTypes {
     | '/api/public/face/verify'
     | '/api/public/sign/$token'
     | '/api/public/sign/$token/confirm'
-    | '/api/public/sign/$token/validate-code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -486,13 +473,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicFaceRegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sign/$token/validate-code': {
-      id: '/api/public/sign/$token/validate-code'
-      path: '/validate-code'
-      fullPath: '/api/public/sign/$token/validate-code'
-      preLoaderRoute: typeof ApiPublicSignTokenValidateCodeRouteImport
-      parentRoute: typeof ApiPublicSignTokenRoute
-    }
     '/api/public/sign/$token/confirm': {
       id: '/api/public/sign/$token/confirm'
       path: '/confirm'
@@ -549,12 +529,10 @@ const AuthenticatedRouteRouteWithChildren =
 
 interface ApiPublicSignTokenRouteChildren {
   ApiPublicSignTokenConfirmRoute: typeof ApiPublicSignTokenConfirmRoute
-  ApiPublicSignTokenValidateCodeRoute: typeof ApiPublicSignTokenValidateCodeRoute
 }
 
 const ApiPublicSignTokenRouteChildren: ApiPublicSignTokenRouteChildren = {
   ApiPublicSignTokenConfirmRoute: ApiPublicSignTokenConfirmRoute,
-  ApiPublicSignTokenValidateCodeRoute: ApiPublicSignTokenValidateCodeRoute,
 }
 
 const ApiPublicSignTokenRouteWithChildren =

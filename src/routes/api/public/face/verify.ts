@@ -5,8 +5,8 @@ export const Route = createFileRoute("/api/public/face/verify")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { embedding, access_token, access_code } = (await request.json()) as { 
-          embedding: number[]; 
+        const { image, access_token, access_code } = (await request.json()) as { 
+          image: string; 
           access_token: string;
           access_code: string;
         };
@@ -59,17 +59,22 @@ export const Route = createFileRoute("/api/public/face/verify")({
         // 3. Verify image against stored PROTECTED embedding
         try {
           const storedEmbedding = decryptEmbedding(employee.facial_embedding as any);
-          const result = facialService.compareEmbeddings(embedding, storedEmbedding);
+          const result = await facialService.processFace(image, "verify", storedEmbedding);
 
-          if (!result.verified) {
-            await facialService.logAttempt(employee.id, doc.id, false, "Face não corresponde", { distance: result.distance }, ip);
-            return Response.json({ verified: false, error: "Biometria facial não confere. Tente novamente." }, { status: 401 });
+          if (result.error) {
+            await (facialService as any).logAttempt(employee.id, doc.id, false, result.error, null, ip);
+            return Response.json({ error: result.error }, { status: 400 });
           }
 
-          await facialService.logAttempt(employee.id, doc.id, true, undefined, null, ip);
+          if (!result.verified) {
+            await (facialService as any).logAttempt(employee.id, doc.id, false, "Face não corresponde", { distance: result.distance }, ip);
+            return Response.json({ verified: false, error: "Validação facial falhou. Tente novamente." }, { status: 401 });
+          }
+
+          await (facialService as any).logAttempt(employee.id, doc.id, true, undefined, null, ip);
           
           // 4. Create temporary signing token
-          const facialAuthToken = await facialService.createFacialAuthToken(doc.id, employee.id);
+          const facialAuthToken = await (facialService as any).createFacialAuthToken(doc.id, employee.id);
           
           return Response.json({ verified: true, facialAuthToken });
         } catch (e) {

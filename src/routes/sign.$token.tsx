@@ -5,11 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock, ShieldAlert } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-import { loadModels, getFaceEmbedding, validateFaceQuality } from "@/lib/face-api.client";
 
 
 type DocData = {
@@ -53,16 +52,11 @@ function SignPage() {
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
   const [step, setStep] = useState<"code" | "face" | "sign">("code");
   const [accessCode, setAccessCode] = useState("");
-  const [validatingCode, setValidatingCode] = useState(false);
-  const [signerInfo, setSignerInfo] = useState<{ id: string; name: string; facial_status: string } | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
-  const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [modelsLoading, setModelsLoading] = useState(false);
-  const [qualityError, setQualityError] = useState<string | null>(null);
 
 
 
@@ -94,34 +88,16 @@ function SignPage() {
 
   useEffect(() => {
     if (step === "face" && !capturedImage) {
-      setVideoReady(false);
-      
-      const startCamera = async () => {
-        try {
-          // Lazy load models
-          setModelsLoading(true);
-          await loadModels();
-          setModelsLoading(false);
-
-          const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { 
-              facingMode: "user",
-              width: { ideal: 640 },
-              height: { ideal: 480 }
-            } 
-          });
-          
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+        .then((stream) => {
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
-        } catch (err) {
-          console.error("Erro ao preparar validação facial:", err);
-          setModelsLoading(false);
-          toast.error("Erro ao preparar câmera ou biometria. Verifique as permissões.");
-        }
-      };
-
-      startCamera();
+        })
+        .catch((err) => {
+          console.error("Erro ao acessar câmera:", err);
+          toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+        });
 
       return () => {
         const stream = videoRef.current?.srcObject as MediaStream;
@@ -343,40 +319,19 @@ function SignPage() {
                         <Input
                           id="access-code"
                           type="text"
-                          maxLength={4}
                           value={accessCode}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, "");
-                            setAccessCode(val);
-                          }}
-                          placeholder="0001"
+                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
+                          placeholder="EX: TG-123456"
                           className="text-center font-mono text-lg tracking-widest"
                         />
                       </div>
                       <Button 
                         className="w-full" 
-                        disabled={accessCode.length !== 4 || validatingCode}
-                        onClick={async () => {
-                          setValidatingCode(true);
-                          try {
-                            const res = await fetch(`/api/public/sign/${token}/validate-code`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ access_code: accessCode })
-                            });
-                            const result = await res.json();
-                            if (!res.ok) throw new Error(result.error || "Código inválido");
-                            
-                            setSignerInfo(result.employee);
-                            setStep("face");
-                          } catch (e: any) {
-                            toast.error(e.message);
-                          } finally {
-                            setValidatingCode(false);
-                          }
+                        onClick={() => {
+                          if (accessCode.length < 3) return toast.error("Informe o código completo");
+                          setStep("face");
                         }}
                       >
-                        {validatingCode ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
                         Continuar para Validação Facial
                       </Button>
                     </div>
@@ -392,16 +347,9 @@ function SignPage() {
                       <div className="text-center">
                         <h4 className="font-semibold">Validação Facial</h4>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {modelsLoading ? "Preparando biometria..." : !videoReady ? "Iniciando câmera..." : "Posicione seu rosto no centro da câmera."}
+                          Posicione seu rosto no centro da câmera.
                         </p>
                       </div>
-
-                      {qualityError && (
-                        <div className="flex items-center gap-2 rounded-lg bg-destructive/10 p-2.5 text-[11px] text-destructive animate-in fade-in zoom-in-95">
-                          <ShieldAlert className="size-3.5 shrink-0" />
-                          <p>{qualityError}</p>
-                        </div>
-                      )}
                       
                       <div className="relative mx-auto aspect-square w-full max-w-[280px] overflow-hidden rounded-full border-4 border-muted bg-black">
                         {!capturedImage ? (
@@ -413,7 +361,6 @@ function SignPage() {
                               muted
                               className="h-full w-full object-cover"
                               onCanPlay={() => {
-                                setVideoReady(true);
                                 videoRef.current?.play().catch(console.error);
                               }}
                             />
@@ -427,7 +374,7 @@ function SignPage() {
                       {verifyingFace && (
                         <div className="flex items-center justify-center gap-2 text-sm text-primary animate-pulse">
                           <Loader2 className="size-4 animate-spin" />
-                          <span>Validando identidade...</span>
+                          <span>Validando identidade com DeepFace...</span>
                         </div>
                       )}
 
@@ -435,63 +382,38 @@ function SignPage() {
                         {!capturedImage ? (
                           <Button 
                             className="w-full" 
-                            disabled={!videoReady}
                             onClick={async () => {
-                              if (!videoRef.current || videoRef.current.videoWidth === 0) {
-                                toast.error("Câmera não está pronta");
-                                return;
-                              }
-
+                              if (!videoRef.current) return;
+                              const canvas = document.createElement("canvas");
+                              canvas.width = videoRef.current.videoWidth;
+                              canvas.height = videoRef.current.videoHeight;
+                              const ctx = canvas.getContext("2d");
+                              if (!ctx) return;
+                              ctx.drawImage(videoRef.current, 0, 0);
+                              const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+                              setCapturedImage(dataUrl);
+                              
+                              // Verify face via API
                               setVerifyingFace(true);
-                              setQualityError(null);
-
                               try {
-                                // 1. Validate quality first
-                                const quality = await validateFaceQuality(videoRef.current);
-                                if (!quality.valid) {
-                                  setQualityError(quality.error || "Erro de qualidade facial");
-                                  setVerifyingFace(false);
-                                  return;
-                                }
-
-                                // 2. Generate embedding locally
-                                const embedding = await getFaceEmbedding(videoRef.current);
-                                if (!embedding) {
-                                  setQualityError("Não foi possível processar as características do rosto");
-                                  setVerifyingFace(false);
-                                  return;
-                                }
-
-                                // 3. Small delay for visual feedback
-                                const canvas = document.createElement("canvas");
-                                canvas.width = videoRef.current.videoWidth;
-                                canvas.height = videoRef.current.videoHeight;
-                                const ctx = canvas.getContext("2d");
-                                if (ctx) {
-                                  ctx.drawImage(videoRef.current, 0, 0);
-                                  setCapturedImage(canvas.toDataURL("image/jpeg", 0.8));
-                                }
-                                
-                                // 4. Send ONLY the embedding to the backend
-                                const facialStatus = signerInfo?.facial_status || doc.facial_status;
-                                const endpoint = facialStatus === "registered" ? "verify" : "register";
-                                
+                                const endpoint = doc.facial_status === "registered" ? "verify" : "register";
                                 const res = await fetch(`/api/public/face/${endpoint}`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({
                                     access_token: token,
-                                    embedding: embedding,
+                                    image: dataUrl,
                                     access_code: accessCode
                                   })
-                                });
 
+                                });
                                 const result = await res.json();
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
                                 
                                 toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada com sucesso!");
-                                setFacialAuthToken((result.facialAuthToken as string) || null);
+                                setFacialAuthToken(result.facialAuthToken);
                                 setStep("sign");
+
                               } catch (e: any) {
                                 toast.error(e.message);
                                 setCapturedImage(null);
