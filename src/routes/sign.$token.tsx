@@ -307,7 +307,9 @@ function SignPage() {
       const config = await checkFacialConfig();
       if (!config.ok) {
         setPrecheckStatus(prev => ({ ...prev, models: 'fail' }));
-        toast.error(`Erro de configuração no servidor: ${config.errors.join(", ")}`);
+        toast.error(`Erro de configuração no servidor: ${config.errors.join(", ")}`, {
+          duration: 10000
+        });
         return;
       }
 
