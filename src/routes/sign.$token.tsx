@@ -44,6 +44,7 @@ export const Route = createFileRoute("/sign/$token")({
 function SignPage() {
   const { token } = Route.useParams();
   const [doc, setDoc] = useState<DocData | null>(null);
+  const [employee, setEmployee] = useState<{ id: string; name: string; facial_status: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [signature, setSignature] = useState<string | null>(null);
@@ -315,24 +316,54 @@ function SignPage() {
                         </p>
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="access-code">Código Único</Label>
+                        <Label htmlFor="access-code">Código Único (4 dígitos)</Label>
                         <Input
                           id="access-code"
                           type="text"
+                          inputMode="numeric"
+                          maxLength={4}
                           value={accessCode}
-                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                          placeholder="EX: TG-123456"
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            setAccessCode(val);
+                          }}
+                          placeholder="0001"
                           className="text-center font-mono text-lg tracking-widest"
                         />
                       </div>
                       <Button 
                         className="w-full" 
-                        onClick={() => {
-                          if (accessCode.length < 3) return toast.error("Informe o código completo");
-                          setStep("face");
+                        disabled={accessCode.length !== 4 || verifyingFace}
+                        onClick={async () => {
+                          setVerifyingFace(true);
+                          try {
+                            const res = await fetch(`/api/public/sign/${token}/validate-code`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ access_code: accessCode })
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || "Código inválido");
+                            
+                            // Use the facial_status returned by backend for THIS employee
+                            toast.success(`Bem-vindo, ${data.employee.name}`);
+                            setEmployee(data.employee);
+                            setStep("face");
+                          } catch (err: any) {
+                            toast.error(err.message);
+                          } finally {
+                            setVerifyingFace(false);
+                          }
                         }}
                       >
-                        Continuar para Validação Facial
+                        {verifyingFace ? (
+                          <>
+                            <Loader2 className="mr-2 size-4 animate-spin" />
+                            Validando...
+                          </>
+                        ) : (
+                          "Continuar para Validação Facial"
+                        )}
                       </Button>
                     </div>
                   )}
@@ -382,8 +413,12 @@ function SignPage() {
                         {!capturedImage ? (
                           <Button 
                             className="w-full" 
+                            disabled={verifyingFace}
                             onClick={async () => {
-                              if (!videoRef.current) return;
+                              if (!videoRef.current || videoRef.current.videoWidth === 0) {
+                                toast.error("Câmera ainda carregando...");
+                                return;
+                              }
                               const canvas = document.createElement("canvas");
                               canvas.width = videoRef.current.videoWidth;
                               canvas.height = videoRef.current.videoHeight;
@@ -396,33 +431,33 @@ function SignPage() {
                               // Verify face via API
                               setVerifyingFace(true);
                               try {
-                                const endpoint = doc.facial_status === "registered" ? "verify" : "register";
+                                const currentFacialStatus = employee?.facial_status || doc.facial_status;
+                                const endpoint = currentFacialStatus === "registered" ? "verify" : "register";
                                 const res = await fetch(`/api/public/face/${endpoint}`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    access_token: token,
-                                    image: dataUrl,
-                                    access_code: accessCode
-                                  })
-
+                                  body: JSON.stringify({ 
+                                    image: dataUrl, 
+                                    access_token: token, 
+                                    access_code: accessCode 
+                                  }),
                                 });
                                 const result = await res.json();
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
-                                
-                                toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada com sucesso!");
-                                setFacialAuthToken(result.facialAuthToken);
-                                setStep("sign");
 
-                              } catch (e: any) {
-                                toast.error(e.message);
+                                setFacialAuthToken(result.facialAuthToken);
+                                 const displayStatus = employee?.facial_status || doc.facial_status;
+                                toast.success(displayStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
+                                setStep("sign");
+                              } catch (err: any) {
+                                toast.error(err.message);
                                 setCapturedImage(null);
                               } finally {
                                 setVerifyingFace(false);
                               }
                             }}
                           >
-                            Capturar Foto
+                            {verifyingFace ? "Validando..." : "Capturar foto"}
                           </Button>
                         ) : (
                           <Button variant="outline" className="w-full" onClick={() => setCapturedImage(null)} disabled={verifyingFace}>

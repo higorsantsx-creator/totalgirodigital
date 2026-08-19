@@ -51,14 +51,15 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           return Response.json({ ok: true });
         }
 
-        if (!body.facial_auth_token || !doc.client_id) {
+        const recipientId = doc.client_id;
+        if (!body.facial_auth_token || !recipientId) {
           return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
         }
 
-        const isFacialValid = await (facialService as any).validateFacialAuthToken(
+        const isFacialValid = await facialService.validateFacialAuthToken(
           body.facial_auth_token, 
           doc.id, 
-          doc.client_id
+          recipientId
         );
 
         if (!isFacialValid) {
@@ -98,6 +99,8 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             signer_typed_name: body.signer_name ?? null,
           })
           .eq("id", doc.id);
+
+        await facialService.markFacialAuthTokenUsed(body.facial_auth_token);
 
         return Response.json({ ok: true, signed_file_path: signedFilePath });
       },

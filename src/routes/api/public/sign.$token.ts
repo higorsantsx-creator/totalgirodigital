@@ -27,11 +27,12 @@ export const Route = createFileRoute("/api/public/sign/$token")({
         }
 
         let facial_status = "pending";
-        if (d.recipient_id) {
+        const recipientId = d.client_id || d.recipient_id;
+        if (recipientId) {
           const { data: client } = await supabaseAdmin
             .from("clients")
             .select("facial_status")
-            .eq("id", d.recipient_id)
+            .eq("id", recipientId)
             .maybeSingle();
           if (client) facial_status = (client as any).facial_status ?? "pending";
         }
@@ -61,7 +62,7 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           name: d.name,
           status,
           recipient_name: d.recipient_name,
-          recipient_id: d.recipient_id,
+          recipient_id: d.client_id || d.recipient_id,
           message: d.message,
           deadline: d.deadline,
           sender_name: (sender as any)?.full_name ?? (sender as any)?.email ?? "Remetente",

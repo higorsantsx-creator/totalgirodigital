@@ -60,7 +60,7 @@ export const Route = createFileRoute("/api/public/face/register")({
         const result = await facialService.processFace(image, "register");
 
         if (result.error || !result.embedding) {
-          await (facialService as any).logAttempt(employee.id, doc.id, false, result.error || "Erro no processamento facial", null, ip);
+          await facialService.logAttempt(employee.id, doc.id, false, result.error || "Erro no processamento facial", null, ip);
           return Response.json({ error: result.error || "Falha ao processar face" }, { status: 400 });
         }
 
@@ -78,10 +78,10 @@ export const Route = createFileRoute("/api/public/face/register")({
 
         if (updErr) return Response.json({ error: updErr.message }, { status: 500 });
 
-        await (facialService as any).logAttempt(employee.id, doc.id, true, undefined, null, ip);
+        await facialService.logAttempt(employee.id, doc.id, true, undefined, null, ip);
         
         // 6. Create temporary signing token
-        const facialAuthToken = await (facialService as any).createFacialAuthToken(doc.id, employee.id);
+        const facialAuthToken = await facialService.createFacialAuthToken(doc.id, employee.id);
         
         return Response.json({ success: true, facialAuthToken });
       }
