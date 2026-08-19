@@ -8,8 +8,8 @@ export const checkFacialConfig = createServerFn({ method: "GET" })
     
     if (!encryptionKey) {
       errors.push("EMBEDDING_ENCRYPTION_KEY não configurada");
-    } else if (Buffer.from(encryptionKey).length !== 32) {
-      errors.push("EMBEDDING_ENCRYPTION_KEY deve ter exatamente 32 bytes");
+    } else if (encryptionKey.length !== 64) {
+      errors.push("EMBEDDING_ENCRYPTION_KEY deve ser uma string hexadecimal de 64 caracteres (32 bytes)");
     }
 
     // Adicione outras variáveis críticas se necessário no futuro

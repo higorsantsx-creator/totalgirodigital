@@ -10,10 +10,11 @@ function getEncryptionKey(): Buffer {
     throw new Error("CONFIG_ERROR: EMBEDDING_ENCRYPTION_KEY is not defined");
   }
   
-  const keyBuffer = Buffer.from(key);
-  if (keyBuffer.length !== 32) {
-    throw new Error(`CONFIG_ERROR: EMBEDDING_ENCRYPTION_KEY must be exactly 32 bytes (got ${keyBuffer.length})`);
+  if (!key || key.length !== 64) {
+    throw new Error(`CONFIG_ERROR: EMBEDDING_ENCRYPTION_KEY must be a 64-character hex string (got ${key?.length ?? 0})`);
   }
+  
+  const keyBuffer = Buffer.from(key, 'hex');
   
   return keyBuffer;
 }
