@@ -9,7 +9,7 @@ import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Sen
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-import { getFaceEmbedding } from "@/lib/facial-client";
+import { getFaceEmbedding, loadModels } from "@/lib/facial-client";
 import { Checkbox } from "@/components/ui/checkbox";
 
 
@@ -104,11 +104,23 @@ function SignPage() {
         return;
       }
 
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+      const constraints = { 
+        video: { 
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 640 }
+        } 
+      };
+
+      navigator.mediaDevices.getUserMedia(constraints)
         .then((stream) => {
           setCameraError(null);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
+            // Ensure video plays and metadata is loaded
+            videoRef.current.onloadedmetadata = () => {
+              videoRef.current?.play().catch(console.error);
+            };
           }
         })
         .catch((err) => {
@@ -116,12 +128,17 @@ function SignPage() {
           if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
             setCameraError({ 
               type: 'blocked', 
-              message: "Acesso à câmera bloqueado. Por favor, habilite a permissão nas configurações do seu navegador." 
+              message: "Acesso à câmera bloqueado. Por favor, habilite a permissão nas configurações do seu navegador ou do celular." 
+            });
+          } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            setCameraError({ 
+              type: 'error', 
+              message: "Nenhuma câmera encontrada no dispositivo." 
             });
           } else {
             setCameraError({ 
               type: 'error', 
-              message: "Não foi possível acessar a câmera. Verifique se ela está sendo usada por outro app." 
+              message: `Erro ao acessar câmera: ${err.message || 'Verifique se ela está sendo usada por outro app.'}` 
             });
           }
         });
@@ -551,9 +568,16 @@ function SignPage() {
                               
                               setVerifyingFace(true);
                               try {
+                                // Double check if models are loaded just in case
+                                await loadModels();
+
+                                if (!videoRef.current || videoRef.current.readyState < 2) {
+                                  throw new Error("Câmera não está pronta para captura. Tente novamente em instantes.");
+                                }
+
                                 const faceResult = await getFaceEmbedding(videoRef.current);
                                 if (!faceResult) {
-                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera e verifique a iluminação.");
+                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera, verifique a iluminação e remova acessórios como óculos escuros.");
                                   setVerifyingFace(false);
                                   return;
                                 }
