@@ -17,22 +17,40 @@ export const facialService = {
   /**
    * Compares a locally generated embedding with a stored one server-side.
    */
+  /**
+   * Euclidean distance threshold for the faceRecognitionNet model (face-api.js).
+   * Values < 0.6 are typically considered a match.
+   */
+  DISTANCE_THRESHOLD: 0.6,
+
+  /**
+   * Compares a locally generated embedding with a stored one server-side.
+   */
   async verifyEmbedding(
     inputEmbedding: number[],
     targetEmbedding: number[]
   ): Promise<DeepFaceResponse> {
-    // We use a strict Euclidean distance comparison server-side to ensure integrity.
-    // The threshold is usually 0.6 for ArcFace-based models.
-    const distance = Math.sqrt(
-      inputEmbedding.reduce((acc, val, i) => acc + Math.pow(val - targetEmbedding[i], 0), 0)
-    );
-    
-    // Note: Re-implementing Euclidean distance manually for standard JS arrays
+    // 1. Validation: Must exist and be arrays
+    if (!Array.isArray(inputEmbedding) || !Array.isArray(targetEmbedding)) {
+      return { error: "Formato de biometria inválido (não é array)" };
+    }
+
+    // 2. Validation: Must have exactly 128 dimensions (face-api.js default)
+    if (inputEmbedding.length !== 128 || targetEmbedding.length !== 128) {
+      return { error: `Dimensões inválidas: esperado 128, recebido ${inputEmbedding.length}/${targetEmbedding.length}` };
+    }
+
+    // 3. Validation: All values must be finite numbers
+    const isInvalid = (arr: number[]) => arr.some(v => typeof v !== 'number' || !Number.isFinite(v));
+    if (isInvalid(inputEmbedding) || isInvalid(targetEmbedding)) {
+      return { error: "Dados biométricos corrompidos ou inválidos" };
+    }
+
+    // 4. Euclidean distance implementation
     const sumSq = inputEmbedding.reduce((acc, val, i) => acc + Math.pow(val - targetEmbedding[i], 2), 0);
     const euclideanDistance = Math.sqrt(sumSq);
     
-    // Threshold 0.6 is common for "verified"
-    const verified = euclideanDistance < 0.6;
+    const verified = euclideanDistance < this.DISTANCE_THRESHOLD;
     
     return {
       verified,
