@@ -24,7 +24,7 @@ type DocData = {
   facial_status: string | null;
 };
 
-export const Route = createFileRoute("/sign/$token")({
+export const Route = createFileRoute("/sign/$token/client")({
   ssr: false,
   beforeLoad: () => {
     // We allow public access to this specific signing route
