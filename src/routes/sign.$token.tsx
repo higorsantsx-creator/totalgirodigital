@@ -905,3 +905,14 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
   );
 }
 
+function GuideBadge({ active, label }: { active: boolean; label: string }) {
+  return (
+    <div className={`
+      px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-tighter transition-all duration-300
+      ${active ? 'bg-success text-success-foreground shadow-sm' : 'bg-black/40 text-white/50 border border-white/10'}
+    `}>
+      {label}
+    </div>
+  );
+}
+
