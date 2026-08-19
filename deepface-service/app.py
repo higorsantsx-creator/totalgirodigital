@@ -9,7 +9,10 @@ import time
 app = Flask(__name__)
 
 # Security: API Key required
-API_KEY = os.environ.get("DEEPFACE_API_KEY", "dev-secret-key")
+API_KEY = os.environ.get("DEEPFACE_API_KEY")
+
+if not API_KEY:
+    raise RuntimeError("CRITICAL ERROR: DEEPFACE_API_KEY environment variable is not set. The service cannot start without a security key.")
 
 def verify_api_key():
     key = request.headers.get("X-API-Key")

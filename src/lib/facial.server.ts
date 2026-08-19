@@ -18,12 +18,15 @@ export const facialService = {
     action: "register" | "verify",
     targetEmbedding?: number[],
   ): Promise<DeepFaceResponse> {
-    const serviceUrl = process.env.DEEPFACE_SERVICE_URL;
     const apiKey = process.env.DEEPFACE_API_KEY;
+    const serviceUrl = process.env.DEEPFACE_SERVICE_URL;
+
+    if (!apiKey) {
+      throw new Error("CONFIG_ERROR: DEEPFACE_API_KEY is not defined in the environment");
+    }
 
     if (!serviceUrl) {
       console.warn("DEEPFACE_SERVICE_URL not configured");
-      // Return a simulated error or wait for implementation
       return { error: "Serviço facial não configurado" };
     }
 
