@@ -136,12 +136,15 @@ function SignPage() {
   // Monitor face feedback in real-time
   useEffect(() => {
     let interval: any;
+    let loadingToastShown = false;
+
     if (step === 'face' && !capturedImage && !cameraError && videoRef.current) {
       interval = setInterval(async () => {
         if (!videoRef.current || videoRef.current.paused || videoRef.current.ended) return;
         
         try {
-          const result = await getFaceEmbedding(videoRef.current);
+          // Use Tiny detector for real-time mobile feedback
+          const result = await getFaceEmbedding(videoRef.current, true);
           if (!result) {
             setFaceFeedback("Rosto não detectado. Aproxime-se mais.");
           } else if (result.faceCount > 1) {
@@ -149,8 +152,12 @@ function SignPage() {
           } else {
             setFaceFeedback(null);
           }
-        } catch (e) {
-          // ignore detection errors during preview
+        } catch (e: any) {
+          console.error("Erro no feedback facial:", e);
+          if (e.message?.includes("Não foi possível carregar") && !loadingToastShown) {
+            toast.error(e.message);
+            loadingToastShown = true;
+          }
         }
       }, 1000);
     }
