@@ -62,6 +62,11 @@ function SignPage() {
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<{ type: 'blocked' | 'incompatible' | 'error', message: string } | null>(null);
   const [faceFeedback, setFaceFeedback] = useState<string | null>(null);
+  const [faceMetrics, setFaceMetrics] = useState<{
+    position: 'center' | 'left' | 'right' | 'too-close' | 'too-far' | 'none';
+    distance: 'ok' | 'close' | 'far';
+    lighting: 'ok' | 'dim' | 'bright';
+  }>({ position: 'none', distance: 'ok', lighting: 'ok' });
   const [precheckStatus, setPrecheckStatus] = useState<{
     permission: 'pending' | 'ok' | 'fail';
     camera: 'pending' | 'ok' | 'fail';
@@ -168,12 +173,50 @@ function SignPage() {
         try {
           // Use Tiny detector for real-time mobile feedback
           const result = await getFaceEmbedding(videoRef.current, true);
+          
           if (!result) {
             setFaceFeedback("Rosto não detectado. Aproxime-se mais.");
-          } else if (result.faceCount > 1) {
-            setFaceFeedback("Múltiplos rostos detectados. Fique sozinho na câmera.");
+            setFaceMetrics(prev => ({ ...prev, position: 'none' }));
           } else {
-            setFaceFeedback(null);
+            // Calculate metrics for real-time guidance
+            const box = result.box;
+            const videoWidth = videoRef.current.videoWidth;
+            const videoHeight = videoRef.current.videoHeight;
+            
+            // 1. Position Check (Horizontal)
+            const faceCenterX = box.x + box.width / 2;
+            const relX = faceCenterX / videoWidth;
+            let pos: any = 'center';
+            if (relX < 0.35) pos = 'right'; // Mirrored video
+            else if (relX > 0.65) pos = 'left';
+            
+            // 2. Distance Check (Size relative to container)
+            const faceArea = (box.width * box.height) / (videoWidth * videoHeight);
+            let dist: any = 'ok';
+            if (faceArea < 0.05) { dist = 'far'; pos = 'too-far'; }
+            else if (faceArea > 0.45) { dist = 'close'; pos = 'too-close'; }
+
+            // 3. Simple Lighting Check (average brightness of face area)
+            // Note: This is a placeholder as full pixel analysis is expensive here, 
+            // but we can infer from detection confidence or keep as 'ok' for now.
+            
+            setFaceMetrics({
+              position: pos,
+              distance: dist,
+              lighting: 'ok'
+            });
+
+            if (result.faceCount > 1) {
+              setFaceFeedback("Múltiplos rostos detectados. Fique sozinho na câmera.");
+            } else if (pos === 'too-far') {
+              setFaceFeedback("Aproxime-se mais da câmera.");
+            } else if (pos === 'too-close') {
+              setFaceFeedback("Afaste-se um pouco da câmera.");
+            } else if (pos === 'left' || pos === 'right') {
+              setFaceFeedback("Centralize seu rosto.");
+            } else {
+              setFaceFeedback(null);
+            }
           }
         } catch (e: any) {
           console.error("Erro no feedback facial:", e);
@@ -670,8 +713,25 @@ function SignPage() {
                               }}
                             />
                             <div className="pointer-events-none absolute inset-0 border-[16px] border-black/20 rounded-full" />
+                            
+                            {/* Real-time Framing Guide */}
+                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                              {/* Central Oval Guide */}
+                              <div className={`
+                                w-[70%] h-[80%] rounded-[50%] border-2 border-dashed transition-colors duration-300
+                                ${faceMetrics.position === 'center' ? 'border-success/60 bg-success/5' : 'border-white/30'}
+                              `} />
+                              
+                              {/* Feedback indicators */}
+                              <div className="absolute top-8 flex gap-2">
+                                <GuideBadge active={faceMetrics.position === 'center'} label="Posição" />
+                                <GuideBadge active={faceMetrics.distance === 'ok'} label="Distância" />
+                                <GuideBadge active={faceMetrics.lighting === 'ok'} label="Luz" />
+                              </div>
+                            </div>
+
                             {faceFeedback && (
-                              <div className="absolute inset-x-0 bottom-4 mx-auto w-fit rounded-full bg-black/60 px-3 py-1 text-[10px] font-medium text-white backdrop-blur-sm">
+                              <div className="absolute inset-x-0 bottom-4 mx-auto w-fit max-w-[80%] rounded-full bg-black/60 px-3 py-1 text-center text-[10px] font-medium text-white backdrop-blur-sm animate-in fade-in zoom-in duration-200">
                                 {faceFeedback}
                               </div>
                             )}
