@@ -446,8 +446,8 @@ function SignPage() {
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
 
                                 setFacialAuthToken(result.facialAuthToken);
-                                const currentFacialStatus = employee?.facial_status || doc.facial_status;
-                                toast.success(currentFacialStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
+                                 const displayStatus = employee?.facial_status || doc.facial_status;
+                                toast.success(displayStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
                                 setStep("sign");
                               } catch (err: any) {
                                 toast.error(err.message);
