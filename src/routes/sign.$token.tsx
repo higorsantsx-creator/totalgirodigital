@@ -9,7 +9,8 @@ import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Sen
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-import { useHydrated } from "@/hooks/use-hydrated";
+import { loadModels, getFaceEmbedding, validateFaceQuality } from "@/lib/face-api.client";
+
 
 type DocData = {
   id: string;
@@ -24,11 +25,12 @@ type DocData = {
   facial_status: string | null;
 };
 
+
 export const Route = createFileRoute("/sign/$token")({
   ssr: false,
-  beforeLoad: () => {
+  beforeLoad: async ({ params }) => {
     // We allow public access to this specific signing route
-    return {};
+    return { token: params.token };
   },
   head: () => ({
     meta: [
@@ -36,11 +38,7 @@ export const Route = createFileRoute("/sign/$token")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: () => {
-    const hydrated = useHydrated();
-    if (!hydrated) return null;
-    return <SignPage />;
-  },
+  component: SignPage,
 });
 
 
@@ -102,7 +100,6 @@ function SignPage() {
         try {
           // Lazy load models
           setModelsLoading(true);
-          const { loadModels } = await import("@/lib/face-api-worker");
           await loadModels();
           setModelsLoading(false);
 
@@ -449,11 +446,8 @@ function SignPage() {
                               setQualityError(null);
 
                               try {
-                                const faceApi = await import("@/lib/face-api-worker");
-                                
                                 // 1. Validate quality first
-                                // @ts-ignore
-                                const quality = await faceApi.validateFaceQuality(videoRef.current);
+                                const quality = await validateFaceQuality(videoRef.current);
                                 if (!quality.valid) {
                                   setQualityError(quality.error || "Erro de qualidade facial");
                                   setVerifyingFace(false);
@@ -461,8 +455,7 @@ function SignPage() {
                                 }
 
                                 // 2. Generate embedding locally
-                                // @ts-ignore
-                                const embedding = await faceApi.getFaceEmbedding(videoRef.current);
+                                const embedding = await getFaceEmbedding(videoRef.current);
                                 if (!embedding) {
                                   setQualityError("Não foi possível processar as características do rosto");
                                   setVerifyingFace(false);
