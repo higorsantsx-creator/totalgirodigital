@@ -1,25 +1,56 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
-// For production, these should be in env vars
-const ALGORITHM = "aes-256-cbc";
-const ENCRYPTION_KEY = process.env.EMBEDDING_ENCRYPTION_KEY || "01234567890123456789012345678901"; // 32 chars
-const IV_LENGTH = 16;
+const ALGORITHM = "aes-256-gcm";
+const IV_LENGTH = 12; // GCM standard IV length
+const AUTH_TAG_LENGTH = 16;
+
+function getEncryptionKey(): Buffer {
+  const key = process.env.EMBEDDING_ENCRYPTION_KEY;
+  if (!key) {
+    throw new Error("CONFIG_ERROR: EMBEDDING_ENCRYPTION_KEY is not defined");
+  }
+  
+  const keyBuffer = Buffer.from(key);
+  if (keyBuffer.length !== 32) {
+    throw new Error(`CONFIG_ERROR: EMBEDDING_ENCRYPTION_KEY must be exactly 32 bytes (got ${keyBuffer.length})`);
+  }
+  
+  return keyBuffer;
+}
 
 export function encryptEmbedding(embedding: number[]): string {
+  const key = getEncryptionKey();
   const text = JSON.stringify(embedding);
   const iv = randomBytes(IV_LENGTH);
-  const cipher = createCipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
-  let encrypted = cipher.update(text);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return iv.toString("hex") + ":" + encrypted.toString("hex");
+  
+  const cipher = createCipheriv(ALGORITHM, key, iv);
+  
+  let encrypted = cipher.update(text, "utf8", "hex");
+  encrypted += cipher.final("hex");
+  
+  const authTag = cipher.getAuthTag().toString("hex");
+  
+  // Format: iv:authTag:encrypted
+  return `${iv.toString("hex")}:${authTag}:${encrypted}`;
 }
 
 export function decryptEmbedding(encryptedData: string): number[] {
-  const textParts = encryptedData.split(":");
-  const iv = Buffer.from(textParts.shift()!, "hex");
-  const encryptedText = Buffer.from(textParts.join(":"), "hex");
-  const decipher = createDecipheriv(ALGORITHM, Buffer.from(ENCRYPTION_KEY), iv);
-  let decrypted = decipher.update(encryptedText);
-  decrypted = Buffer.concat([decrypted, decipher.final()]);
-  return JSON.parse(decrypted.toString());
+  const key = getEncryptionKey();
+  const parts = encryptedData.split(":");
+  
+  if (parts.length !== 3) {
+    throw new Error("Invalid encrypted data format");
+  }
+  
+  const iv = Buffer.from(parts[0], "hex");
+  const authTag = Buffer.from(parts[1], "hex");
+  const encryptedText = Buffer.from(parts[2], "hex");
+  
+  const decipher = createDecipheriv(ALGORITHM, key, iv);
+  decipher.setAuthTag(authTag);
+  
+  let decrypted = decipher.update(encryptedText, undefined, "utf8");
+  decrypted += decipher.final("utf8");
+  
+  return JSON.parse(decrypted);
 }
