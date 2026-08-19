@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "./supabase/client.server";
+// src/lib/facial.server.ts is for server-only logic
 
 export interface DeepFaceResponse {
   verified?: boolean;
