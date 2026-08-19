@@ -9,7 +9,7 @@ import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Sen
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-
+import { ClientOnly } from "@/components/client-only";
 
 type DocData = {
   id: string;
@@ -24,7 +24,6 @@ type DocData = {
   facial_status: string | null;
 };
 
-
 export const Route = createFileRoute("/sign/$token")({
   ssr: false,
   beforeLoad: () => {
@@ -37,7 +36,11 @@ export const Route = createFileRoute("/sign/$token")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: SignPage,
+  component: () => (
+    <ClientOnly>
+      <SignPage />
+    </ClientOnly>
+  ),
 });
 
 
