@@ -761,6 +761,7 @@ function SignPage() {
                       <div className="flex flex-col gap-2">
                         {!capturedImage ? (
                           <Button 
+                            id="capture-photo-btn"
                             className="w-full" 
                             disabled={verifyingFace || !!cameraError}
                             onClick={async () => {
