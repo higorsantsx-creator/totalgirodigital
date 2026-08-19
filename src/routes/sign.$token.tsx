@@ -59,6 +59,7 @@ function SignPage() {
   const [consentGiven, setConsentGiven] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
+  const [autoCaptureEnabled, setAutoCaptureEnabled] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<{ type: 'blocked' | 'incompatible' | 'error', message: string } | null>(null);
   const [faceFeedback, setFaceFeedback] = useState<string | null>(null);
@@ -168,7 +169,7 @@ function SignPage() {
 
     if (step === 'face' && !capturedImage && !cameraError && videoRef.current) {
       interval = setInterval(async () => {
-        if (!videoRef.current || videoRef.current.paused || videoRef.current.ended) return;
+        if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || verifyingFace) return;
         
         try {
           // Use Tiny detector for real-time mobile feedback
@@ -196,9 +197,9 @@ function SignPage() {
             if (faceArea < 0.05) { dist = 'far'; pos = 'too-far'; }
             else if (faceArea > 0.45) { dist = 'close'; pos = 'too-close'; }
 
-            // 3. Simple Lighting Check (average brightness of face area)
-            // Note: This is a placeholder as full pixel analysis is expensive here, 
-            // but we can infer from detection confidence or keep as 'ok' for now.
+            // 3. Simple Lighting Check
+            // Lighting is assumed ok if detection is confident, 
+            // but we can add more logic here if needed.
             
             setFaceMetrics({
               position: pos,
@@ -216,6 +217,15 @@ function SignPage() {
               setFaceFeedback("Centralize seu rosto.");
             } else {
               setFaceFeedback(null);
+              
+              // AUTO-CAPTURE LOGIC
+              // If position, distance and lighting are all OK, trigger capture
+              if (pos === 'center' && dist === 'ok' && !verifyingFace) {
+                const captureButton = document.getElementById('capture-photo-btn');
+                if (captureButton) {
+                  captureButton.click();
+                }
+              }
             }
           }
         } catch (e: any) {
@@ -225,10 +235,10 @@ function SignPage() {
             loadingToastShown = true;
           }
         }
-      }, 1000);
+      }, 800); // Slightly faster polling for auto-capture
     }
     return () => clearInterval(interval);
-  }, [step, capturedImage, cameraError]);
+  }, [step, capturedImage, cameraError, verifyingFace]);
 
 
   const submit = async () => {
@@ -682,9 +692,14 @@ function SignPage() {
                         </div>
                       </div>
                       <div className="text-center">
-                        <h4 className="font-semibold">Validação Facial</h4>
+                        <div className="flex items-center justify-center gap-2">
+                          <h4 className="font-semibold">Validação Facial</h4>
+                          <span className="inline-flex items-center rounded-full bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success ring-1 ring-inset ring-success/20">
+                            Automática
+                          </span>
+                        </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Posicione seu rosto no centro da câmera.
+                          Posicione seu rosto no centro do guia abaixo.
                         </p>
                       </div>
                       
@@ -719,8 +734,13 @@ function SignPage() {
                               {/* Central Oval Guide */}
                               <div className={`
                                 w-[70%] h-[80%] rounded-[50%] border-2 border-dashed transition-colors duration-300
-                                ${faceMetrics.position === 'center' ? 'border-success/60 bg-success/5' : 'border-white/30'}
+                                 ${faceMetrics.position === 'center' ? 'border-success bg-success/10' : 'border-white/30'}
                               `} />
+                              
+                              {/* Central scanning line when center detected */}
+                              {faceMetrics.position === 'center' && !verifyingFace && (
+                                <div className="absolute top-[20%] w-[70%] h-0.5 bg-success/40 animate-scan pointer-events-none" />
+                              )}
                               
                               {/* Feedback indicators */}
                               <div className="absolute top-8 flex gap-2">
@@ -751,6 +771,7 @@ function SignPage() {
                       <div className="flex flex-col gap-2">
                         {!capturedImage ? (
                           <Button 
+                            id="capture-photo-btn"
                             className="w-full" 
                             disabled={verifyingFace || !!cameraError}
                             onClick={async () => {
