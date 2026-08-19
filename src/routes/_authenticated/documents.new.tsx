@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
+import { checkFacialConfig } from "@/lib/facial-config.functions";
 import type { FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,6 +61,20 @@ function NewDocumentPage() {
   const [created, setCreated] = useState<{ link: string; phone: string; docName: string; deadline: string | null } | null>(null);
   const [copied, setCopied] = useState(false);
   const [preparingWhatsapp, setPreparingWhatsapp] = useState(false);
+  const [configChecked, setConfigChecked] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkFacialConfig().then(res => {
+      if (!res.ok) {
+        setConfigError(res.errors.join(", "));
+        toast.error(`Atenção: Sistema de biometria com erro de configuração: ${res.errors.join(", ")}`, {
+          duration: 10000
+        });
+      }
+      setConfigChecked(true);
+    });
+  }, []);
 
   const { data: clients, isLoading: clientsLoading, error: clientsError } = useQuery({
     queryKey: ["clients", user?.id],
@@ -108,6 +123,11 @@ function NewDocumentPage() {
     if (authLoading) return toast.error("A sessão ainda está carregando.");
     if (!user) return toast.error("Faça login novamente para enviar documentos.");
     setLoading(true);
+
+    if (configError) {
+      setLoading(false);
+      return toast.error(`Não é possível enviar documentos: ${configError}. Verifique as variáveis de ambiente.`);
+    }
 
     let finalClientId: string | null = clientId !== "new" ? clientId : null;
     if (clientId === "new" && recipientName.trim()) {

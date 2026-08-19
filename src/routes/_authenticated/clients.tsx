@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { checkFacialConfig } from "@/lib/facial-config.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,20 @@ type Client = {
 
 
 function ClientsPage() {
+  const [configChecked, setConfigChecked] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkFacialConfig().then(res => {
+      if (!res.ok) {
+        setConfigError(res.errors.join(", "));
+        toast.error(`Atenção: Sistema de biometria com erro de configuração: ${res.errors.join(", ")}`, {
+          duration: 10000
+        });
+      }
+      setConfigChecked(true);
+    });
+  }, []);
   const { user } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
