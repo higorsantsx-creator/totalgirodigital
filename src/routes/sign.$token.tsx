@@ -768,12 +768,39 @@ function SignPage() {
                         )}
                       </div>
 
-                      {verifyingFace && (
-                        <div className="flex items-center justify-center gap-2 text-sm text-primary animate-pulse">
-                          <Loader2 className="size-4 animate-spin" />
-                          <span>Processando biometria localmente...</span>
+                      {/* Progress Indicator Cycle */}
+                      <div className="mx-auto w-full max-w-[240px] space-y-3 pt-2">
+                        <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold text-muted-foreground/60">
+                          <div className={`flex items-center gap-1.5 transition-colors ${faceCycleStatus === 'detecting' ? 'text-primary' : (faceCycleStatus !== 'idle' ? 'text-success' : '')}`}>
+                            <div className={`size-1.5 rounded-full ${faceCycleStatus === 'detecting' ? 'bg-primary animate-pulse' : (faceCycleStatus !== 'idle' ? 'bg-success' : 'bg-muted')}`} />
+                            Detecção
+                          </div>
+                          <div className="h-px flex-1 mx-2 bg-border/50" />
+                          <div className={`flex items-center gap-1.5 transition-colors ${faceCycleStatus === 'capturing' ? 'text-primary' : (['verifying', 'error'].includes(faceCycleStatus) ? 'text-success' : '')}`}>
+                            <div className={`size-1.5 rounded-full ${faceCycleStatus === 'capturing' ? 'bg-primary animate-pulse' : (['verifying', 'error'].includes(faceCycleStatus) ? 'bg-success' : 'bg-muted')}`} />
+                            Captura
+                          </div>
+                          <div className="h-px flex-1 mx-2 bg-border/50" />
+                          <div className={`flex items-center gap-1.5 transition-colors ${faceCycleStatus === 'verifying' ? 'text-primary' : (faceCycleStatus === 'error' ? 'text-destructive' : '')}`}>
+                            <div className={`size-1.5 rounded-full ${faceCycleStatus === 'verifying' ? 'bg-primary animate-pulse' : (faceCycleStatus === 'error' ? 'bg-destructive' : 'bg-muted')}`} />
+                            Verificação
+                          </div>
                         </div>
-                      )}
+
+                        {faceCycleStatus === 'error' && cycleError && (
+                          <div className="rounded-lg bg-destructive/10 p-2.5 text-[10px] text-destructive flex gap-2 animate-in fade-in slide-in-from-top-1">
+                            <AlertTriangle className="size-3.5 shrink-0" />
+                            <p className="leading-relaxed">{cycleError}</p>
+                          </div>
+                        )}
+                        
+                        {faceCycleStatus === 'verifying' && (
+                          <div className="flex items-center justify-center gap-2 text-[10px] font-medium text-primary animate-pulse">
+                            <Loader2 className="size-3 animate-spin" />
+                            <span>Processando biometria...</span>
+                          </div>
+                        )}
+                      </div>
 
                       <div className="flex flex-col gap-2">
                         {!capturedImage ? (
