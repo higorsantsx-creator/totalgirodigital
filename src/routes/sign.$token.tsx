@@ -411,8 +411,12 @@ function SignPage() {
                         {!capturedImage ? (
                           <Button 
                             className="w-full" 
+                            disabled={verifyingFace}
                             onClick={async () => {
-                              if (!videoRef.current) return;
+                              if (!videoRef.current || videoRef.current.videoWidth === 0) {
+                                toast.error("Câmera ainda carregando...");
+                                return;
+                              }
                               const canvas = document.createElement("canvas");
                               canvas.width = videoRef.current.videoWidth;
                               canvas.height = videoRef.current.videoHeight;
@@ -429,25 +433,28 @@ function SignPage() {
                                 const res = await fetch(`/api/public/face/${endpoint}`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
-                                  body: JSON.stringify({
-                                    access_token: token,
-                                    image: dataUrl,
-                                    access_code: accessCode
-                                  })
-
+                                  body: JSON.stringify({ 
+                                    image: dataUrl, 
+                                    access_token: token, 
+                                    access_code: accessCode 
+                                  }),
                                 });
                                 const result = await res.json();
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
-                                
-                                toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada com sucesso!");
-                                setFacialAuthToken(result.facialAuthToken);
-                                setStep("sign");
 
-                              } catch (e: any) {
-                                toast.error(e.message);
+                                setFacialAuthToken(result.facialAuthToken);
+                                toast.success(doc.facial_status === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
+                                setStep("sign");
+                              } catch (err: any) {
+                                toast.error(err.message);
                                 setCapturedImage(null);
                               } finally {
                                 setVerifyingFace(false);
+                              }
+                            }}
+                          >
+                            {verifyingFace ? "Validando..." : "Capturar foto"}
+                          </Button>
                               }
                             }}
                           >
