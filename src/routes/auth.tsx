@@ -35,13 +35,17 @@ function AuthPage() {
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
+    
+    // If we're on a public signing page or have a redirect to one, don't auto-redirect to dashboard
+    if (redirect?.includes("/sign/")) return;
+
     supabase.auth.getSession().then(({ data }) => {
       if (!cancelled && data.session) afterAuth();
     });
     return () => {
       cancelled = true;
     };
-  }, [hydrated]);
+  }, [hydrated, redirect]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
