@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/public/face/register")({
         // 1. Identify document/employee through token and access_code
         const { data: doc, error: docErr } = await supabaseAdmin
           .from("documents")
-          .select("id, recipient_id, recipient_phone, owner_id")
+          .select("id, client_id, owner_id")
           .eq("access_token", access_token)
           .maybeSingle();
 
@@ -37,14 +37,14 @@ export const Route = createFileRoute("/api/public/face/register")({
 
         if (empErr || !employee) return Response.json({ error: "Código de acesso inválido para este documento" }, { status: 404 });
         
-        // Ensure this employee is the intended recipient if recipient_id is set
-        if (doc.recipient_id && doc.recipient_id !== employee.id) {
+        // Ensure this employee is the intended recipient if client_id is set
+        if (doc.client_id && doc.client_id !== employee.id) {
           return Response.json({ error: "Este código pertence a outro funcionário" }, { status: 403 });
         }
 
         if (employee.facial_status === "registered") return Response.json({ error: "Face já cadastrada" }, { status: 400 });
 
-        // 3. Rate limiting check (e.g., 5 attempts per IP/employee in 1 hour)
+        // 3. Rate limiting check
         const { count } = await supabaseAdmin
           .from("facial_validation_logs")
           .select("*", { count: "exact", head: true })
@@ -60,7 +60,7 @@ export const Route = createFileRoute("/api/public/face/register")({
         const result = await facialService.processFace(image, "register");
 
         if (result.error || !result.embedding) {
-          await facialService.logAttempt(employee.id, doc.id, false, result.error || "Erro no processamento facial", null, ip);
+          await (facialService as any).logAttempt(employee.id, doc.id, false, result.error || "Erro no processamento facial", null, ip);
           return Response.json({ error: result.error || "Falha ao processar face" }, { status: 400 });
         }
 
@@ -73,15 +73,15 @@ export const Route = createFileRoute("/api/public/face/register")({
             facial_embedding: encryptedEmbedding as any,
             facial_model: "ArcFace",
             facial_registered_at: new Date().toISOString()
-          })
+          } as any)
           .eq("id", employee.id);
 
         if (updErr) return Response.json({ error: updErr.message }, { status: 500 });
 
-        await facialService.logAttempt(employee.id, doc.id, true, undefined, null, ip);
+        await (facialService as any).logAttempt(employee.id, doc.id, true, undefined, null, ip);
         
         // 6. Create temporary signing token
-        const facialAuthToken = await facialService.createFacialAuthToken(doc.id, employee.id);
+        const facialAuthToken = await (facialService as any).createFacialAuthToken(doc.id, employee.id);
         
         return Response.json({ success: true, facialAuthToken });
       }

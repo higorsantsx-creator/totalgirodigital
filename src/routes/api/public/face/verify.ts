@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/public/face/verify")({
         // 1. Identify employee through token and access_code
         const { data: doc, error: docErr } = await supabaseAdmin
           .from("documents")
-          .select("id, recipient_id, owner_id")
+          .select("id, client_id, owner_id")
           .eq("access_token", access_token)
           .maybeSingle();
 
@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/public/face/verify")({
 
         if (empErr || !employee) return Response.json({ error: "Código de acesso inválido para este documento" }, { status: 404 });
         
-        if (doc.recipient_id && doc.recipient_id !== employee.id) {
+        if (doc.client_id && doc.client_id !== employee.id) {
           return Response.json({ error: "Este código pertence a outro funcionário" }, { status: 403 });
         }
 
@@ -62,19 +62,19 @@ export const Route = createFileRoute("/api/public/face/verify")({
           const result = await facialService.processFace(image, "verify", storedEmbedding);
 
           if (result.error) {
-            await facialService.logAttempt(employee.id, doc.id, false, result.error, null, ip);
+            await (facialService as any).logAttempt(employee.id, doc.id, false, result.error, null, ip);
             return Response.json({ error: result.error }, { status: 400 });
           }
 
           if (!result.verified) {
-            await facialService.logAttempt(employee.id, doc.id, false, "Face não corresponde", { distance: result.distance }, ip);
+            await (facialService as any).logAttempt(employee.id, doc.id, false, "Face não corresponde", { distance: result.distance }, ip);
             return Response.json({ verified: false, error: "Validação facial falhou. Tente novamente." }, { status: 401 });
           }
 
-          await facialService.logAttempt(employee.id, doc.id, true, undefined, null, ip);
+          await (facialService as any).logAttempt(employee.id, doc.id, true, undefined, null, ip);
           
           // 4. Create temporary signing token
-          const facialAuthToken = await facialService.createFacialAuthToken(doc.id, employee.id);
+          const facialAuthToken = await (facialService as any).createFacialAuthToken(doc.id, employee.id);
           
           return Response.json({ verified: true, facialAuthToken });
         } catch (e) {
