@@ -20,6 +20,7 @@ export const Route = createFileRoute("/api/public/face/verify")({
           .maybeSingle();
 
         if (docErr || !doc) return Response.json({ error: "Documento não encontrado" }, { status: 404 });
+        if (!doc.recipient_phone) return Response.json({ error: "Documento sem telefone de destinatário" }, { status: 400 });
 
         const { data: employee, error: empErr } = await supabaseAdmin
           .from("clients")
@@ -33,7 +34,6 @@ export const Route = createFileRoute("/api/public/face/verify")({
         }
 
         // 2. Verify image against stored embedding
-        // Convert string vector representation if necessary, or pass as array
         const storedEmbedding = employee.facial_embedding as unknown as number[];
         const result = await facialService.processFace(image, "verify", storedEmbedding);
 
@@ -49,7 +49,6 @@ export const Route = createFileRoute("/api/public/face/verify")({
 
         await facialService.logAttempt(employee.id, doc.id, true);
         
-        // 3. In a real scenario, we would return a verification token to be used in the sign confirmation
         return Response.json({ verified: true });
       }
     }

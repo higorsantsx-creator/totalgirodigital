@@ -20,8 +20,9 @@ export const Route = createFileRoute("/api/public/face/register")({
           .maybeSingle();
 
         if (docErr || !doc) return Response.json({ error: "Documento não encontrado" }, { status: 404 });
+        if (!doc.recipient_phone) return Response.json({ error: "Documento sem telefone de destinatário" }, { status: 400 });
 
-        // 2. Find employee by phone (link used in this system)
+        // 2. Find employee by phone
         const { data: employee, error: empErr } = await supabaseAdmin
           .from("clients")
           .select("id, facial_status")
