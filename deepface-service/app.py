@@ -112,20 +112,36 @@ def verify():
         # DeepFace.verify also does this but we want full control
         # DeepFace internal distance for ArcFace cosine threshold is usually around 0.68
         
-        result = DeepFace.verify(
-            img1_path=captured_embedding, 
-            img2_path=target_embedding,
-            model_name="ArcFace",
-            distance_metric="cosine",
-            enforce_detection=False # already detected
-        )
+        # ARC FACE COSINE THRESHOLD: 0.68 is standard for DeepFace/ArcFace
+        # We perform manual cosine similarity calculation as requested
+        
+        captured_vec = np.array(captured_embedding)
+        target_vec = np.array(target_embedding)
+        
+        # Validate dimensionality (ArcFace is 512)
+        if captured_vec.shape != (512,) or target_vec.shape != (512,):
+            return jsonify({"error": f"Dimensionalidade inválida: {captured_vec.shape} vs {target_vec.shape}"}), 400
+
+        # Cosine distance = 1 - Cosine Similarity
+        dot_product = np.dot(captured_vec, target_vec)
+        norm_captured = np.linalg.norm(captured_vec)
+        norm_target = np.linalg.norm(target_vec)
+        
+        cosine_similarity = dot_product / (norm_captured * norm_target)
+        distance = 1 - cosine_similarity
+        
+        # ArcFace threshold for cosine distance is typically 0.68
+        threshold = 0.68
+        verified = bool(distance <= threshold)
+
         
         return jsonify({
-            "verified": result["verified"],
-            "distance": result["distance"],
+            "verified": verified,
+            "distance": float(distance),
             "face_detected": True,
-            "antispoof_score": obj.get("antispoof_score", 0)
+            "antispoof_score": float(obj.get("antispoof_score", 0))
         })
+
         
     except Exception as e:
         print(f"Error in verify: {str(e)}")
