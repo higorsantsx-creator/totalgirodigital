@@ -4,12 +4,19 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
   server: {
     handlers: {
       POST: async ({ params, request }) => {
-        const body = (await request.json()) as { signature_data_url?: string; action?: "sign" | "decline"; reason?: string; signer_name?: string };
+        const body = (await request.json()) as { 
+          signature_data_url?: string; 
+          action?: "sign" | "decline"; 
+          reason?: string; 
+          signer_name?: string;
+          facial_auth_token?: string;
+        };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { facialService } = await import("@/lib/facial.server");
 
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("id, status, owner_id, file_path")
+          .select("id, status, owner_id, file_path, client_id")
           .eq("access_token", params.token)
           .maybeSingle();
         if (error || !doc) return Response.json({ error: "Documento não encontrado" }, { status: 404 });
@@ -50,6 +57,22 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         if (!body.signature_data_url) {
           return Response.json({ error: "Assinatura obrigatória" }, { status: 400 });
         }
+
+        // 7. PROTECT BACKEND: Verify facial authorization token
+        if (!body.facial_auth_token || !doc.client_id) {
+          return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
+        }
+
+        const isFacialValid = await (facialService as any).validateFacialAuthToken(
+          body.facial_auth_token, 
+          doc.id, 
+          doc.client_id
+        );
+
+        if (!isFacialValid) {
+          return Response.json({ error: "Sessão de validação facial expirada ou inválida. Repita a validação." }, { status: 403 });
+        }
+
         const match = body.signature_data_url.match(/^data:image\/png;base64,(.+)$/);
         if (!match) return Response.json({ error: "Formato inválido" }, { status: 400 });
         const buf = Buffer.from(match[1], "base64");
@@ -60,7 +83,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         if (upErr) return Response.json({ error: upErr.message }, { status: 500 });
 
         // Embed signature into the PDF and save as a NEW signed copy.
-        // The document is only marked as "assinado" after this succeeds.
         let signedFilePath: string;
         try {
           const { data: pdfBlob, error: dlErr } = await supabaseAdmin.storage
@@ -79,7 +101,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         } catch (e) {
           console.error("[sign] embed signature failed", e);
           const embedError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
-          // Register the failure in audit_logs but DO NOT mark the document as signed.
           await supabaseAdmin.from("audit_logs").insert({
             action: "sign_pdf_generation_failed",
             entity: "document",
@@ -118,7 +139,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         });
 
         return Response.json({ ok: true, signed_file_path: signedFilePath });
-
       },
     },
   },
