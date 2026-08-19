@@ -153,11 +153,11 @@ function ClientsPage() {
     if (!payload.name) return toast.error("Nome é obrigatório");
 
     if (editing) {
-      const { error } = await supabase.from("clients").update(payload).eq("id", editing.id);
+      const { error } = await supabase.from("clients").update(payload as any).eq("id", editing.id);
       if (error) return toast.error(error.message);
       toast.success("Funcionário atualizado");
     } else {
-      const { error } = await supabase.from("clients").insert({ ...payload, owner_id: user.id });
+      const { error } = await supabase.from("clients").insert({ ...payload, owner_id: user.id } as any);
       if (error) return toast.error(error.message);
       toast.success("Funcionário cadastrado");
     }
