@@ -692,9 +692,14 @@ function SignPage() {
                         </div>
                       </div>
                       <div className="text-center">
-                        <h4 className="font-semibold">Validação Facial</h4>
+                        <div className="flex items-center justify-center gap-2">
+                          <h4 className="font-semibold">Validação Facial</h4>
+                          <span className="inline-flex items-center rounded-full bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success ring-1 ring-inset ring-success/20">
+                            Automática
+                          </span>
+                        </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Posicione seu rosto no centro da câmera.
+                          Posicione seu rosto no centro do guia abaixo.
                         </p>
                       </div>
                       
