@@ -36,11 +36,11 @@ export const Route = createFileRoute("/sign/$token")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: () => (
-    <ClientOnly>
-      <SignPage />
-    </ClientOnly>
-  ),
+  component: () => {
+    const hydrated = useHydrated();
+    if (!hydrated) return null;
+    return <SignPage />;
+  },
 });
 
 
