@@ -449,7 +449,7 @@ function SignPage() {
                                 // 1. Validate quality first
                                 const quality = await validateFaceQuality(videoRef.current);
                                 if (!quality.valid) {
-                                  setQualityError(quality.error);
+                                  setQualityError(quality.error || "Erro de qualidade facial");
                                   setVerifyingFace(false);
                                   return;
                                 }
