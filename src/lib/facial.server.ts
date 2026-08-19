@@ -85,6 +85,9 @@ export const facialService = {
    * Generates a cryptographically secure token and stores its hash.
    */
   async createFacialAuthToken(documentId: string, employeeId: string): Promise<string> {
+    if (!process.env.EMBEDDING_ENCRYPTION_KEY) {
+      throw new Error("Erro interno: Chave de criptografia facial não configurada.");
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const token = randomBytes(32).toString("hex");
     const tokenHash = createHash("sha256").update(token).digest("hex");
@@ -111,6 +114,10 @@ export const facialService = {
    * Validates a facial auth token hash.
    */
   async validateFacialAuthToken(token: string, documentId: string, employeeId: string): Promise<boolean> {
+    if (!process.env.EMBEDDING_ENCRYPTION_KEY) {
+      console.error("[facialService] Validation failed: EMBEDDING_ENCRYPTION_KEY is not set.");
+      return false;
+    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const tokenHash = createHash("sha256").update(token).digest("hex");
 
