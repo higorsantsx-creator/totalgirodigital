@@ -34,7 +34,10 @@ type Client = {
   email: string | null;
   phone: string | null;
   notes: string | null;
+  access_code: string | null;
+  facial_status: string | null;
 };
+
 
 function ClientsPage() {
   const { user } = useAuth();
