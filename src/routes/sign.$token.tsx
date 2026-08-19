@@ -449,7 +449,7 @@ function SignPage() {
                               setQualityError(null);
 
                               try {
-                                const faceApi = await import("@/lib/face-api.client");
+                                const faceApi = await import("@/lib/face-api-worker");
                                 
                                 // 1. Validate quality first
                                 // @ts-ignore
