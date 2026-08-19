@@ -448,6 +448,8 @@ function SignPage() {
                               setQualityError(null);
 
                               try {
+                                const { validateFaceQuality, getFaceEmbedding } = await import("@/lib/face-api.client");
+                                
                                 // 1. Validate quality first
                                 const quality = await validateFaceQuality(videoRef.current);
                                 if (!quality.valid) {
