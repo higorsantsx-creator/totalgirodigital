@@ -17,8 +17,8 @@ export const Route = createFileRoute("/api/public/sign/$token")({
             client_id,
             message,
             deadline,
-            signed_pdf_url,
-            owner:profiles!owner_id(full_name)
+            signed_file_path,
+            owner_id
           `)
           .eq("access_token", token)
           .maybeSingle();
@@ -27,12 +27,24 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           return Response.json({ error: "Documento não encontrado ou link inválido" }, { status: 404 });
         }
 
-        // Use signed_pdf_url if status is "assinado", otherwise we should ideally fetch the original template URL.
-        // For simplicity and matching client expectations, we'll try to get a temporary URL if needed, 
-        // but often the stored URL is already public or we can just return it.
-        const pdfUrl = doc.status === "assinado" && doc.signed_pdf_url 
-          ? doc.signed_pdf_url 
-          : null; // Original template URL would normally be in a separate field if we wanted it for unsigned.
+        // Fetch owner name
+        const { data: owner } = await supabaseAdmin
+          .from("profiles")
+          .select("full_name")
+          .eq("id", doc.owner_id)
+          .maybeSingle();
+
+        let pdfUrl = null;
+        const storagePath = doc.status === "assinado" && doc.signed_file_path 
+          ? doc.signed_file_path 
+          : doc.file_path;
+
+        if (storagePath) {
+          const { data } = await supabaseAdmin.storage
+            .from("documents")
+            .createSignedUrl(storagePath, 3600);
+          pdfUrl = data?.signedUrl;
+        }
 
         return Response.json({
           id: doc.id,
@@ -42,7 +54,7 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           recipient_id: doc.client_id,
           message: doc.message,
           deadline: doc.deadline,
-          sender_name: (doc.owner as any)?.full_name ?? "Sistema",
+          sender_name: owner?.full_name ?? "Sistema",
           pdf_url: pdfUrl,
         });
       },
