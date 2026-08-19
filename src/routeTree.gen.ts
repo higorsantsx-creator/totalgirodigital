@@ -30,10 +30,10 @@ import { Route as AuthenticatedReportsAuditRouteImport } from './routes/_authent
 import { Route as AuthenticatedDocumentsNewRouteImport } from './routes/_authenticated/documents.new'
 import { Route as AuthenticatedDocumentsIdRouteImport } from './routes/_authenticated/documents.$id'
 import { Route as ApiPublicSign_tokenConfirmRouteImport } from './routes/api/public/sign_$token.confirm'
-import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign/$token'
+import { Route as ApiPublicSignTokenRouteImport } from './routes/api/public/sign.$token'
 import { Route as ApiPublicFaceVerifyRouteImport } from './routes/api/public/face/verify'
 import { Route as ApiPublicFaceRegisterRouteImport } from './routes/api/public/face/register'
-import { Route as ApiPublicSignTokenConfirmRouteImport } from './routes/api/public/sign/$token.confirm'
+import { Route as ApiPublicSignTokenConfirmRouteImport } from './routes/api/public/sign.$token.confirm'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
