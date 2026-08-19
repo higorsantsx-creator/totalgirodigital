@@ -5,11 +5,12 @@ export const Route = createFileRoute("/api/public/face/register")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { image, access_token, access_code } = (await request.json()) as { 
-          image: string; 
+        const { embedding, access_token, access_code } = (await request.json()) as { 
+          embedding: number[]; 
           access_token: string;
           access_code: string;
         };
+
         
         if (!access_code) return Response.json({ error: "Código de acesso obrigatório" }, { status: 400 });
 
@@ -56,16 +57,14 @@ export const Route = createFileRoute("/api/public/face/register")({
             return Response.json({ error: "Muitas tentativas falhas. Tente novamente em 1 hora." }, { status: 429 });
         }
 
-        // 4. Process image with DeepFace
-        const result = await facialService.processFace(image, "register");
-
-        if (result.error || !result.embedding) {
-          await facialService.logAttempt(employee.id, doc.id, false, result.error || "Erro no processamento facial", null, ip);
-          return Response.json({ error: result.error || "Falha ao processar face" }, { status: 400 });
+        // 4. Update employee record with PROTECTED embedding
+        if (!embedding || embedding.length === 0) {
+          return Response.json({ error: "Embedding facial não fornecido" }, { status: 400 });
         }
 
+
         // 5. Update employee record with PROTECTED embedding
-        const encryptedEmbedding = encryptEmbedding(result.embedding);
+        const encryptedEmbedding = encryptEmbedding(embedding);
         const { error: updErr } = await supabaseAdmin
           .from("clients")
           .update({
