@@ -170,6 +170,7 @@ function SignPage() {
     let loadingToastShown = false;
 
     if (step === 'face' && !capturedImage && !cameraError && videoRef.current) {
+      setFaceCycleStatus('detecting');
       interval = setInterval(async () => {
         if (!videoRef.current || videoRef.current.paused || videoRef.current.ended || verifyingFace) return;
         
@@ -225,6 +226,7 @@ function SignPage() {
               if (pos === 'center' && dist === 'ok' && !verifyingFace) {
                 const captureButton = document.getElementById('capture-photo-btn');
                 if (captureButton) {
+                  setFaceCycleStatus('capturing');
                   captureButton.click();
                 }
               }
@@ -238,6 +240,9 @@ function SignPage() {
           }
         }
       }, 800); // Slightly faster polling for auto-capture
+    } else if (step !== 'face') {
+      setFaceCycleStatus('idle');
+      setCycleError(null);
     }
     return () => clearInterval(interval);
   }, [step, capturedImage, cameraError, verifyingFace]);
