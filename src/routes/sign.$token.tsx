@@ -459,7 +459,7 @@ function SignPage() {
 
                                 // 2. Generate embedding locally
                                 // @ts-ignore
-                                const embedding = await (await import("@/lib/face-api.client")).getFaceEmbedding(videoRef.current);
+                                const embedding = await faceApi.getFaceEmbedding(videoRef.current);
                                 if (!embedding) {
                                   setQualityError("Não foi possível processar as características do rosto");
                                   setVerifyingFace(false);
