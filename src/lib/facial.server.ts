@@ -1,65 +1,36 @@
 // src/lib/facial.server.ts is for server-only logic
 import { createHash, randomBytes } from "crypto";
 
-export interface DeepFaceResponse {
-  verified?: boolean;
-  distance?: number;
-  embedding?: number[];
-  face_detected?: boolean;
-  antispoof_score?: number;
-  error?: string;
+export interface FaceVerificationResult {
+  verified: boolean;
+  distance: number;
 }
 
 export const facialService = {
   /**
-   * Calls the DeepFace service to register or verify a face.
+   * Compares two embeddings using Euclidean distance.
    */
-  async processFace(
-    imageBase64: string,
-    action: "register" | "verify",
-    targetEmbedding?: number[],
-  ): Promise<DeepFaceResponse> {
-    const apiKey = process.env.DEEPFACE_API_KEY;
-    const serviceUrl = process.env.DEEPFACE_SERVICE_URL;
-
-    if (!apiKey) {
-      throw new Error("CONFIG_ERROR: DEEPFACE_API_KEY is not defined in the environment");
+  compareEmbeddings(
+    embedding1: number[],
+    embedding2: number[],
+    threshold = 0.6
+  ): FaceVerificationResult {
+    if (embedding1.length !== embedding2.length) {
+      throw new Error("Os embeddings possuem tamanhos diferentes");
     }
 
-    if (!serviceUrl) {
-      console.warn("DEEPFACE_SERVICE_URL not configured");
-      return { error: "Serviço facial não configurado" };
+    let sum = 0;
+    for (let i = 0; i < embedding1.length; i++) {
+      sum += Math.pow(embedding1[i] - embedding2[i], 2);
     }
+    const distance = Math.sqrt(sum);
 
-    try {
-      const response = await fetch(`${serviceUrl}/face/${action}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-Key": apiKey || "",
-        },
-        body: JSON.stringify({
-          image: imageBase64,
-          target_embedding: targetEmbedding,
-          model_name: "ArcFace",
-          enforce_detection: true,
-          detector_backend: "opencv",
-          align: true,
-          anti_spoofing: true,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        return { error: `Erro no serviço facial: ${response.status} ${errorText}` };
-      }
-
-      return await response.json();
-    } catch (e) {
-      console.error("[facialService] request failed", e);
-      return { error: "Falha na comunicação com o serviço facial" };
-    }
+    return {
+      verified: distance < threshold,
+      distance
+    };
   },
+
 
   /**
    * Records a validation attempt in the database logs.
