@@ -27,6 +27,10 @@ type DocData = {
 
 export const Route = createFileRoute("/sign/$token")({
   ssr: false,
+  beforeLoad: async ({ params }) => {
+    // We allow public access to this specific signing route
+    return { token: params.token };
+  },
   head: () => ({
     meta: [
       { title: "Assinar Documento — Total Giro" },
@@ -59,11 +63,19 @@ function SignPage() {
   useEffect(() => {
     fetch(`/api/public/sign/${token}`)
       .then(async (res) => {
-        if (!res.ok) {
-          const j = await res.json().catch(() => ({}));
-          throw new Error(j.error ?? "Erro ao carregar");
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("Failed to parse response:", text);
+          throw new Error("Resposta inválida do servidor");
         }
-        return res.json();
+        
+        if (!res.ok) {
+          throw new Error(data.error ?? "Erro ao carregar");
+        }
+        return data;
       })
       .then((data) => {
         setDoc(data);
@@ -144,7 +156,10 @@ function SignPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-secondary/40">
-        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-2">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Carregando documento...</p>
+        </div>
       </div>
     );
   }
@@ -155,6 +170,9 @@ function SignPage() {
           <XCircle className="mx-auto size-10 text-destructive" />
           <h1 className="mt-4 font-display text-xl font-bold">Link inválido</h1>
           <p className="mt-2 text-sm text-muted-foreground">{error ?? "Este documento não está disponível."}</p>
+          <Button variant="outline" className="mt-6" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
         </div>
       </div>
     );

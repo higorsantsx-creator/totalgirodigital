@@ -13,17 +13,15 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         };
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { facialService } = await import("@/lib/facial.server");
+        const token = params.token;
 
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
           .select("id, status, owner_id, file_path, client_id")
-          .eq("access_token", params.token)
+          .eq("access_token", token)
           .maybeSingle();
         if (error || !doc) return Response.json({ error: "Documento não encontrado" }, { status: 404 });
-        if (doc.status === "assinado" || doc.status === "recusado" || doc.status === "expirado") {
-          return Response.json({ error: "Documento não está mais disponível para assinatura" }, { status: 400 });
-        }
-
+        
         const ip =
           request.headers.get("cf-connecting-ip") ??
           request.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
@@ -53,12 +51,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
           return Response.json({ ok: true });
         }
 
-        // sign path
-        if (!body.signature_data_url) {
-          return Response.json({ error: "Assinatura obrigatória" }, { status: 400 });
-        }
-
-        // 7. PROTECT BACKEND: Verify facial authorization token
         if (!body.facial_auth_token || !doc.client_id) {
           return Response.json({ error: "Validação facial obrigatória" }, { status: 403 });
         }
@@ -70,50 +62,29 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         );
 
         if (!isFacialValid) {
-          return Response.json({ error: "Sessão de validação facial expirada ou inválida. Repita a validação." }, { status: 403 });
+          return Response.json({ error: "Sessão de validação facial expirada ou inválida." }, { status: 403 });
         }
 
-        const match = body.signature_data_url.match(/^data:image\/png;base64,(.+)$/);
+        const match = body.signature_data_url?.match(/^data:image\/png;base64,(.+)$/);
         if (!match) return Response.json({ error: "Formato inválido" }, { status: 400 });
         const buf = Buffer.from(match[1], "base64");
         const sigPath = `${doc.owner_id}/${doc.id}/signature.png`;
-        const { error: upErr } = await supabaseAdmin.storage
+        
+        await supabaseAdmin.storage
           .from("signatures")
           .upload(sigPath, buf, { contentType: "image/png", upsert: true });
-        if (upErr) return Response.json({ error: upErr.message }, { status: 500 });
 
-        // Embed signature into the PDF and save as a NEW signed copy.
-        let signedFilePath: string;
-        try {
-          const { data: pdfBlob, error: dlErr } = await supabaseAdmin.storage
-            .from("documents")
-            .download(doc.file_path);
-          if (dlErr || !pdfBlob) throw dlErr ?? new Error("Falha ao baixar PDF original");
-          const pdfBytes = new Uint8Array(await pdfBlob.arrayBuffer());
-          const { embedSignatureIntoPdf } = await import("@/lib/pdf-sign.server");
-          const signedBytes = await embedSignatureIntoPdf(pdfBytes, buf);
+        const { data: pdfBlob } = await supabaseAdmin.storage
+          .from("documents")
+          .download(doc.file_path);
+        
+        const { embedSignatureIntoPdf } = await import("@/lib/pdf-sign.server");
+        const signedBytes = await embedSignatureIntoPdf(new Uint8Array(await pdfBlob!.arrayBuffer()), buf);
 
-          signedFilePath = `${doc.owner_id}/${doc.id}/signed.pdf`;
-          const { error: sUpErr } = await supabaseAdmin.storage
-            .from("documents")
-            .upload(signedFilePath, signedBytes, { contentType: "application/pdf", upsert: true });
-          if (sUpErr) throw sUpErr;
-        } catch (e) {
-          console.error("[sign] embed signature failed", e);
-          const embedError = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
-          await supabaseAdmin.from("audit_logs").insert({
-            action: "sign_pdf_generation_failed",
-            entity: "document",
-            entity_id: doc.id,
-            ip,
-            user_agent: ua,
-            metadata: { embed_error: embedError, signature_path: sigPath },
-          });
-          return Response.json(
-            { error: "Não foi possível gerar o PDF assinado. Tente novamente." },
-            { status: 500 },
-          );
-        }
+        const signedFilePath = `${doc.owner_id}/${doc.id}/signed.pdf`;
+        await supabaseAdmin.storage
+          .from("documents")
+          .upload(signedFilePath, signedBytes, { contentType: "application/pdf", upsert: true });
 
         await supabaseAdmin
           .from("documents")
@@ -127,16 +98,6 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
             signer_typed_name: body.signer_name ?? null,
           })
           .eq("id", doc.id);
-        await supabaseAdmin.from("document_history").insert({
-          document_id: doc.id,
-          action: "assinado",
-          ip,
-          user_agent: ua,
-          metadata: {
-            ...(body.signer_name ? { signer_name: body.signer_name } : {}),
-            signed_file_path: signedFilePath,
-          },
-        });
 
         return Response.json({ ok: true, signed_file_path: signedFilePath });
       },

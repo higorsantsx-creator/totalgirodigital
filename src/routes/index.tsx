@@ -16,6 +16,10 @@ function IndexRedirect() {
   useEffect(() => {
     if (!hydrated) return;
     let cancelled = false;
+    
+    // If the URL has a sign token (e.g. from a deep link that ended up here), don't redirect away
+    if (window.location.pathname.startsWith("/sign/")) return;
+
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
       navigate({ to: data.session ? "/dashboard" : "/auth", replace: true });

@@ -5,30 +5,27 @@ export const Route = createFileRoute("/api/public/sign/$token")({
     handlers: {
       GET: async ({ params }) => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        
-        // Select explicitly to avoid type issues with missing columns if cache is stale
+        const token = params.token;
+
         const { data: doc, error } = await supabaseAdmin
           .from("documents")
-          .select("id, name, status, recipient_name, recipient_id, message, deadline, file_path, signed_file_path, owner_id, viewed_at")
-          .eq("access_token", params.token)
+          .select("*")
+          .eq("access_token", token)
           .maybeSingle();
 
         if (error || !doc) {
           return Response.json({ error: "Documento não encontrado" }, { status: 404 });
         }
 
-        // Cast to avoid TS errors on dynamic columns
         const d = doc as any;
-
-        // expiry check
         let status = d.status;
+
         if (d.deadline && new Date(d.deadline) < new Date() && status !== "assinado" && status !== "recusado") {
           status = "expirado";
           await supabaseAdmin.from("documents").update({ status: "expirado" }).eq("id", d.id);
           await supabaseAdmin.from("document_history").insert({ document_id: d.id, action: "expirado" });
         }
 
-        // recipient facial status
         let facial_status = "pending";
         if (d.recipient_id) {
           const { data: client } = await supabaseAdmin
@@ -39,20 +36,17 @@ export const Route = createFileRoute("/api/public/sign/$token")({
           if (client) facial_status = (client as any).facial_status ?? "pending";
         }
 
-        // sender name
         const { data: sender } = await supabaseAdmin
           .from("profiles")
           .select("full_name, email")
           .eq("id", d.owner_id)
           .maybeSingle();
 
-        // signed url for pdf (10 min)
         const displayPath = d.signed_file_path ?? d.file_path;
         const { data: urlData } = await supabaseAdmin.storage
           .from("documents")
           .createSignedUrl(displayPath, 60 * 10);
 
-        // mark viewed (first time)
         if (!d.viewed_at && status === "pendente") {
           await supabaseAdmin
             .from("documents")
