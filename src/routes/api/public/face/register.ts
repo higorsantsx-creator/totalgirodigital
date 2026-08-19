@@ -70,7 +70,7 @@ export const Route = createFileRoute("/api/public/face/register")({
           .update({
             facial_status: "registered",
             facial_embedding: encryptedEmbedding as any,
-            facial_model: "ArcFace",
+            facial_model: "face-api.js (faceRecognitionNet)",
             facial_registered_at: new Date().toISOString()
           } as any)
           .eq("id", employee.id);
