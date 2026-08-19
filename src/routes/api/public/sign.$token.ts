@@ -17,6 +17,7 @@ export const Route = createFileRoute("/api/public/sign/$token")({
             client_id,
             message,
             deadline,
+            file_path,
             signed_file_path,
             owner_id
           `)
