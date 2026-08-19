@@ -27,12 +27,14 @@ export const getFaceEmbedding = async (
 ): Promise<FaceDetectionResult | null> => {
   await loadModels();
   
+  // Use SsdMobilenetv1Options explicitly to avoid potential defaults mismatch
   const detections = await faceapi.detectAllFaces(input, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
     .withFaceLandmarks()
     .withFaceDescriptors();
     
   if (detections.length === 0) return null;
   
+  // Descriptor is a Float32Array of 128 elements
   return {
     embedding: Array.from(detections[0].descriptor),
     faceCount: detections.length,
