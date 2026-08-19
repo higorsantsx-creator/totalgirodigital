@@ -58,8 +58,11 @@ export const validateFaceQuality = async (videoOrImage: HTMLVideoElement | HTMLI
   
   // Check orientation (simple landmark-based check)
   const landmarks = detection.landmarks;
+  // @ts-ignore
   const nose = landmarks.getNose();
+  // @ts-ignore
   const leftEye = landmarks.getLeftEye();
+  // @ts-ignore
   const rightEye = landmarks.getRightEye();
   
   // Ensure face is relatively centered and facing forward
