@@ -52,9 +52,12 @@ function SignPage() {
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
   const [step, setStep] = useState<"code" | "face" | "sign">("code");
   const [accessCode, setAccessCode] = useState("");
+  const [validatingCode, setValidatingCode] = useState(false);
+  const [signerInfo, setSignerInfo] = useState<{ id: string; name: string; facial_status: string } | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
+  const [videoReady, setVideoReady] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -88,6 +91,7 @@ function SignPage() {
 
   useEffect(() => {
     if (step === "face" && !capturedImage) {
+      setVideoReady(false);
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
         .then((stream) => {
           if (videoRef.current) {
@@ -319,19 +323,40 @@ function SignPage() {
                         <Input
                           id="access-code"
                           type="text"
+                          maxLength={4}
                           value={accessCode}
-                          onChange={(e) => setAccessCode(e.target.value.toUpperCase())}
-                          placeholder="EX: TG-123456"
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "");
+                            setAccessCode(val);
+                          }}
+                          placeholder="0001"
                           className="text-center font-mono text-lg tracking-widest"
                         />
                       </div>
                       <Button 
                         className="w-full" 
-                        onClick={() => {
-                          if (accessCode.length < 3) return toast.error("Informe o código completo");
-                          setStep("face");
+                        disabled={accessCode.length !== 4 || validatingCode}
+                        onClick={async () => {
+                          setValidatingCode(true);
+                          try {
+                            const res = await fetch(`/api/public/sign/${token}/validate-code`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ access_code: accessCode })
+                            });
+                            const result = await res.json();
+                            if (!res.ok) throw new Error(result.error || "Código inválido");
+                            
+                            setSignerInfo(result.employee);
+                            setStep("face");
+                          } catch (e: any) {
+                            toast.error(e.message);
+                          } finally {
+                            setValidatingCode(false);
+                          }
                         }}
                       >
+                        {validatingCode ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
                         Continuar para Validação Facial
                       </Button>
                     </div>
@@ -347,7 +372,7 @@ function SignPage() {
                       <div className="text-center">
                         <h4 className="font-semibold">Validação Facial</h4>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Posicione seu rosto no centro da câmera.
+                          {!videoReady ? "Preparando câmera..." : "Posicione seu rosto no centro da câmera."}
                         </p>
                       </div>
                       
@@ -361,6 +386,7 @@ function SignPage() {
                               muted
                               className="h-full w-full object-cover"
                               onCanPlay={() => {
+                                setVideoReady(true);
                                 videoRef.current?.play().catch(console.error);
                               }}
                             />
@@ -374,7 +400,7 @@ function SignPage() {
                       {verifyingFace && (
                         <div className="flex items-center justify-center gap-2 text-sm text-primary animate-pulse">
                           <Loader2 className="size-4 animate-spin" />
-                          <span>Validando identidade com DeepFace...</span>
+                          <span>Validando identidade...</span>
                         </div>
                       )}
 
@@ -382,8 +408,12 @@ function SignPage() {
                         {!capturedImage ? (
                           <Button 
                             className="w-full" 
+                            disabled={!videoReady}
                             onClick={async () => {
-                              if (!videoRef.current) return;
+                              if (!videoRef.current || videoRef.current.videoWidth === 0) {
+                                toast.error("Câmera não está pronta");
+                                return;
+                              }
                               const canvas = document.createElement("canvas");
                               canvas.width = videoRef.current.videoWidth;
                               canvas.height = videoRef.current.videoHeight;
@@ -396,7 +426,8 @@ function SignPage() {
                               // Verify face via API
                               setVerifyingFace(true);
                               try {
-                                const endpoint = doc.facial_status === "registered" ? "verify" : "register";
+                                const facialStatus = signerInfo?.facial_status || doc.facial_status;
+                                const endpoint = facialStatus === "registered" ? "verify" : "register";
                                 const res = await fetch(`/api/public/face/${endpoint}`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
