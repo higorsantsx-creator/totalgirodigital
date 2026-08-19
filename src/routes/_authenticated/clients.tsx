@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, Pencil, Trash2, Phone, Download } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Phone, Download, CheckCircle2, Clock, RotateCcw } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
@@ -34,13 +34,19 @@ type Client = {
   email: string | null;
   phone: string | null;
   notes: string | null;
+  access_code: string | null;
+  facial_status: string | null;
 };
+
+
 
 function ClientsPage() {
   const { user } = useAuth();
   const qc = useQueryClient();
   const [q, setQ] = useState("");
   const [selectedUnit, setSelectedUnit] = useState("all");
+  const [selectedFacial, setSelectedFacial] = useState("all");
+
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Client | null>(null);
 
@@ -49,11 +55,13 @@ function ClientsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("id, name, company, role, unit, document, email, phone, notes")
+        .select("id, name, company, role, unit, document, email, phone, notes, access_code, facial_status")
         .order("name");
       if (error) throw error;
-      return data as Client[];
+      return data as unknown as Client[];
+
     },
+
   });
 
   const units = Array.from(new Set((clients ?? []).map(c => c.unit).filter(Boolean))).sort() as string[];
@@ -62,7 +70,11 @@ function ClientsPage() {
     const matchesUnit = selectedUnit === "all" || c.unit === selectedUnit;
     if (!matchesUnit) return false;
 
+    const matchesFacial = selectedFacial === "all" || c.facial_status === selectedFacial;
+    if (!matchesFacial) return false;
+
     if (!q) return true;
+
     const s = q.toLowerCase();
     return (
       c.name.toLowerCase().includes(s) ||
@@ -156,6 +168,21 @@ function ClientsPage() {
       <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/80 px-8 backdrop-blur-sm">
         <h1 className="font-display text-lg font-semibold">Funcionários</h1>
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 mr-2 border-r border-border pr-4">
+            <Label htmlFor="facial-filter" className="hidden text-xs font-medium text-muted-foreground sm:block">
+              Biometria:
+            </Label>
+            <select
+              id="facial-filter"
+              value={selectedFacial}
+              onChange={(e) => setSelectedFacial(e.target.value)}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:w-40"
+            >
+              <option value="all">Todos</option>
+              <option value="registered">Cadastrada</option>
+              <option value="pending">Pendente</option>
+            </select>
+          </div>
           <Button
             variant="outline"
             onClick={(e) => {
@@ -168,6 +195,7 @@ function ClientsPage() {
           >
             <Download className="mr-2 size-4 text-slate-400" /> Exportar PDF
           </Button>
+
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNew} className="bg-[#E30613] hover:bg-[#C20510] text-white font-semibold">
@@ -265,13 +293,14 @@ function ClientsPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="bg-secondary/50 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <th className="px-6 py-3">Código</th>
                 <th className="px-6 py-3">Nome</th>
                 <th className="px-6 py-3">Empresa</th>
                 <th className="px-6 py-3">Cargo</th>
                 <th className="px-6 py-3">Unidade</th>
-                <th className="px-6 py-3">WhatsApp</th>
-                <th className="px-6 py-3">CPF/CNPJ</th>
+                <th className="px-6 py-3">Biometria</th>
                 <th className="px-6 py-3 text-right">Ações</th>
+
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -285,21 +314,42 @@ function ClientsPage() {
               {!isLoading &&
                 list.map((c) => (
                   <tr key={c.id} className="transition-colors hover:bg-secondary/40">
+                    <td className="px-6 py-4 font-mono text-xs font-semibold text-primary">{c.access_code ?? "—"}</td>
                     <td className="px-6 py-4 font-medium">{c.name}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.company ?? "—"}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.role ?? "—"}</td>
                     <td className="px-6 py-4 text-muted-foreground">{c.unit ?? "—"}</td>
                     <td className="px-6 py-4">
-                      {c.phone ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Phone className="size-3.5 text-success" /> {c.phone}
+                      {c.facial_status === "registered" ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2 py-0.5 text-[11px] font-medium text-success">
+                          <CheckCircle2 className="size-3" /> Cadastrada
                         </span>
                       ) : (
-                        <span className="text-muted-foreground">—</span>
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-medium text-warning">
+                          <Clock className="size-3" /> Pendente
+                        </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-muted-foreground">{c.document ?? "—"}</td>
+
+                    <td className="px-6 py-4 text-muted-foreground">{c.phone ?? "—"}</td>
                     <td className="px-6 py-4 text-right">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        title="Resetar biometria"
+                        onClick={async () => {
+                          if (!confirm("Tem certeza que deseja resetar a biometria facial deste funcionário? Ele precisará cadastrar novamente na próxima assinatura.")) return;
+                          const { error } = await supabase
+                            .from("clients")
+                            .update({ facial_status: "pending", facial_embedding: null, facial_registered_at: null })
+                            .eq("id", c.id);
+                          if (error) return toast.error(error.message);
+                          toast.success("Biometria resetada");
+                          qc.invalidateQueries({ queryKey: ["clients"] });
+                        }}
+                      >
+                        <RotateCcw className="size-4 text-muted-foreground" />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
                         <Pencil className="size-4" />
                       </Button>
@@ -307,6 +357,7 @@ function ClientsPage() {
                         <Trash2 className="size-4 text-destructive" />
                       </Button>
                     </td>
+
                   </tr>
                 ))}
               {!isLoading && list.length === 0 && (
