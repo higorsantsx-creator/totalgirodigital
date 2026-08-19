@@ -96,15 +96,34 @@ function SignPage() {
 
   useEffect(() => {
     if (step === "face" && !capturedImage) {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError({ 
+          type: 'incompatible', 
+          message: "Seu navegador não suporta acesso à câmera ou a conexão não é segura (HTTPS)." 
+        });
+        return;
+      }
+
       navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
         .then((stream) => {
+          setCameraError(null);
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
           }
         })
         .catch((err) => {
           console.error("Erro ao acessar câmera:", err);
-          toast.error("Não foi possível acessar a câmera. Verifique as permissões.");
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            setCameraError({ 
+              type: 'blocked', 
+              message: "Acesso à câmera bloqueado. Por favor, habilite a permissão nas configurações do seu navegador." 
+            });
+          } else {
+            setCameraError({ 
+              type: 'error', 
+              message: "Não foi possível acessar a câmera. Verifique se ela está sendo usada por outro app." 
+            });
+          }
         });
 
       return () => {
@@ -113,6 +132,30 @@ function SignPage() {
       };
     }
   }, [step, capturedImage]);
+
+  // Monitor face feedback in real-time
+  useEffect(() => {
+    let interval: any;
+    if (step === 'face' && !capturedImage && !cameraError && videoRef.current) {
+      interval = setInterval(async () => {
+        if (!videoRef.current || videoRef.current.paused || videoRef.current.ended) return;
+        
+        try {
+          const result = await getFaceEmbedding(videoRef.current);
+          if (!result) {
+            setFaceFeedback("Rosto não detectado. Aproxime-se mais.");
+          } else if (result.faceCount > 1) {
+            setFaceFeedback("Múltiplos rostos detectados. Fique sozinho na câmera.");
+          } else {
+            setFaceFeedback(null);
+          }
+        } catch (e) {
+          // ignore detection errors during preview
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [step, capturedImage, cameraError]);
 
 
   const submit = async () => {
@@ -501,20 +544,20 @@ function SignPage() {
                               
                               setVerifyingFace(true);
                               try {
-                                const result = await getFaceEmbedding(videoRef.current);
-                                if (!result) {
+                                const faceResult = await getFaceEmbedding(videoRef.current);
+                                if (!faceResult) {
                                   toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera e verifique a iluminação.");
                                   setVerifyingFace(false);
                                   return;
                                 }
 
-                                if (result.faceCount > 1) {
+                                if (faceResult.faceCount > 1) {
                                   toast.error("Múltiplos rostos detectados. Certifique-se de estar sozinho na imagem.");
                                   setVerifyingFace(false);
                                   return;
                                 }
 
-                                const embedding = result.embedding;
+                                const embedding = faceResult.embedding;
 
                                 const canvas = document.createElement("canvas");
                                 canvas.width = videoRef.current.videoWidth;
