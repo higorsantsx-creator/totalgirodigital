@@ -137,6 +137,10 @@ export type Database = {
           created_at: string
           document: string | null
           email: string | null
+          facial_embedding: string | null
+          facial_model: string | null
+          facial_registered_at: string | null
+          facial_status: string | null
           id: string
           name: string
           notes: string | null
@@ -152,6 +156,10 @@ export type Database = {
           created_at?: string
           document?: string | null
           email?: string | null
+          facial_embedding?: string | null
+          facial_model?: string | null
+          facial_registered_at?: string | null
+          facial_status?: string | null
           id?: string
           name: string
           notes?: string | null
@@ -167,6 +175,10 @@ export type Database = {
           created_at?: string
           document?: string | null
           email?: string | null
+          facial_embedding?: string | null
+          facial_model?: string | null
+          facial_registered_at?: string | null
+          facial_status?: string | null
           id?: string
           name?: string
           notes?: string | null
@@ -703,6 +715,51 @@ export type Database = {
             columns: ["signer_id"]
             isOneToOne: false
             referencedRelation: "document_signers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      facial_validation_logs: {
+        Row: {
+          created_at: string | null
+          document_id: string | null
+          employee_id: string
+          failure_reason: string | null
+          id: string
+          metadata: Json | null
+          success: boolean
+        }
+        Insert: {
+          created_at?: string | null
+          document_id?: string | null
+          employee_id: string
+          failure_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          success: boolean
+        }
+        Update: {
+          created_at?: string | null
+          document_id?: string | null
+          employee_id?: string
+          failure_reason?: string | null
+          id?: string
+          metadata?: Json | null
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "facial_validation_logs_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "facial_validation_logs_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
