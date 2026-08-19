@@ -227,7 +227,7 @@ function ClientsPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="access_code">Código Único (Acesso)</Label>
-                    <Input id="access_code" name="access_code" placeholder="Ex: 0001" defaultValue={editing?.access_code ?? ""} />
+                    <Input id="access_code" name="access_code" placeholder="Gerado automaticamente se vazio" defaultValue={editing?.access_code ?? ""} />
                   </div>
 
                   <div className="space-y-1.5">
