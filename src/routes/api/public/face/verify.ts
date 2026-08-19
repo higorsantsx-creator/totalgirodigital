@@ -5,11 +5,12 @@ export const Route = createFileRoute("/api/public/face/verify")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { image, access_token, access_code } = (await request.json()) as { 
-          image: string; 
+        const { embedding, access_token, access_code } = (await request.json()) as { 
+          embedding: number[]; 
           access_token: string;
           access_code: string;
         };
+
         
         if (!access_code) return Response.json({ error: "Código de acesso obrigatório" }, { status: 400 });
         
@@ -59,7 +60,7 @@ export const Route = createFileRoute("/api/public/face/verify")({
         // 3. Verify image against stored PROTECTED embedding
         try {
           const storedEmbedding = decryptEmbedding(employee.facial_embedding as any);
-          const result = await facialService.processFace(image, "verify", storedEmbedding);
+          const result = await facialService.verifyEmbedding(embedding, storedEmbedding);
 
           if (result.error) {
             await facialService.logAttempt(employee.id, doc.id, false, result.error, null, ip);
@@ -81,6 +82,7 @@ export const Route = createFileRoute("/api/public/face/verify")({
           console.error("[face/verify] Decryption or verification failed", e);
           return Response.json({ error: "Erro interno na validação biométrica" }, { status: 500 });
         }
+
       }
     }
   }

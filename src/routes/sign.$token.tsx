@@ -5,10 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SignaturePad } from "@/components/signature-pad";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Send, CalendarClock, Camera, Fingerprint, Lock, Info, Check } from "lucide-react";
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
+import { getFaceEmbedding } from "@/lib/facial-client";
+import { Checkbox } from "@/components/ui/checkbox";
+
 
 
 type DocData = {
@@ -51,11 +54,13 @@ function SignPage() {
   const [typedName, setTypedName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<"assinado" | "recusado" | null>(null);
-  const [step, setStep] = useState<"code" | "face" | "sign">("code");
+  const [step, setStep] = useState<"code" | "consent" | "face" | "sign">("code");
   const [accessCode, setAccessCode] = useState("");
+  const [consentGiven, setConsentGiven] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const [facialAuthToken, setFacialAuthToken] = useState<string | null>(null);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -348,7 +353,8 @@ function SignPage() {
                             // Use the facial_status returned by backend for THIS employee
                             toast.success(`Bem-vindo, ${data.employee.name}`);
                             setEmployee(data.employee);
-                            setStep("face");
+                            setStep(data.employee.facial_status === "registered" ? "face" : "consent");
+
                           } catch (err: any) {
                             toast.error(err.message);
                           } finally {
@@ -368,7 +374,62 @@ function SignPage() {
                     </div>
                   )}
 
+                  {step === "consent" && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                      <div className="flex justify-center">
+                        <div className="rounded-full bg-primary/10 p-3 text-primary">
+                          <Info className="size-6" />
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <h4 className="font-semibold text-lg">Termo de Consentimento</h4>
+                        <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                          Para garantir a segurança desta assinatura, utilizaremos validação facial.
+                        </p>
+                      </div>
+                      
+                      <div className="rounded-xl bg-secondary/30 p-4 space-y-3 text-[11px] leading-relaxed text-muted-foreground border border-border/50">
+                        <div className="flex gap-2">
+                          <Check className="size-3 text-primary shrink-0 mt-0.5" />
+                          <p>A câmera será utilizada apenas durante este processo para capturar seu rosto.</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Check className="size-3 text-primary shrink-0 mt-0.5" />
+                          <p>Uma representação matemática do seu rosto (não a foto real) será armazenada de forma segura.</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Check className="size-3 text-primary shrink-0 mt-0.5" />
+                          <p>Estes dados serão usados exclusivamente para autenticar sua identidade nesta e em futuras assinaturas.</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start space-x-2 p-1">
+                        <Checkbox 
+                          id="consent" 
+                          checked={consentGiven}
+                          onCheckedChange={(checked) => setConsentGiven(!!checked)}
+                          className="mt-1"
+                        />
+                        <label
+                          htmlFor="consent"
+                          className="text-xs leading-tight font-medium cursor-pointer"
+                        >
+                          Eu li e autorizo o uso da minha biometria facial para fins de assinatura digital.
+                        </label>
+                      </div>
+
+                      <Button 
+                        className="w-full" 
+                        disabled={!consentGiven}
+                        onClick={() => setStep("face")}
+                      >
+                        Iniciar Validação Facial
+                      </Button>
+                    </div>
+                  )}
+
                   {step === "face" && (
+
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
                       <div className="flex justify-center">
                         <div className="rounded-full bg-primary/10 p-3 text-primary">
@@ -405,7 +466,7 @@ function SignPage() {
                       {verifyingFace && (
                         <div className="flex items-center justify-center gap-2 text-sm text-primary animate-pulse">
                           <Loader2 className="size-4 animate-spin" />
-                          <span>Validando identidade com DeepFace...</span>
+                          <span>Processando biometria localmente...</span>
                         </div>
                       )}
 
@@ -419,25 +480,33 @@ function SignPage() {
                                 toast.error("Câmera ainda carregando...");
                                 return;
                               }
-                              const canvas = document.createElement("canvas");
-                              canvas.width = videoRef.current.videoWidth;
-                              canvas.height = videoRef.current.videoHeight;
-                              const ctx = canvas.getContext("2d");
-                              if (!ctx) return;
-                              ctx.drawImage(videoRef.current, 0, 0);
-                              const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-                              setCapturedImage(dataUrl);
                               
-                              // Verify face via API
                               setVerifyingFace(true);
                               try {
+                                const embedding = await getFaceEmbedding(videoRef.current);
+                                if (!embedding) {
+                                  toast.error("Nenhum rosto detectado. Posicione-se bem em frente à câmera.");
+                                  setVerifyingFace(false);
+                                  return;
+                                }
+
+                                const canvas = document.createElement("canvas");
+                                canvas.width = videoRef.current.videoWidth;
+                                canvas.height = videoRef.current.videoHeight;
+                                const ctx = canvas.getContext("2d");
+                                if (ctx) {
+                                  ctx.drawImage(videoRef.current, 0, 0);
+                                  setCapturedImage(canvas.toDataURL("image/jpeg", 0.8));
+                                }
+                                
                                 const currentFacialStatus = employee?.facial_status || doc.facial_status;
                                 const endpoint = currentFacialStatus === "registered" ? "verify" : "register";
+                                
                                 const res = await fetch(`/api/public/face/${endpoint}`, {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json" },
                                   body: JSON.stringify({ 
-                                    image: dataUrl, 
+                                    embedding, 
                                     access_token: token, 
                                     access_code: accessCode 
                                   }),
@@ -446,7 +515,7 @@ function SignPage() {
                                 if (!res.ok) throw new Error(result.error || "Falha na validação facial");
 
                                 setFacialAuthToken(result.facialAuthToken);
-                                 const displayStatus = employee?.facial_status || doc.facial_status;
+                                const displayStatus = employee?.facial_status || doc.facial_status;
                                 toast.success(displayStatus === "registered" ? "Identidade confirmada!" : "Biometria cadastrada!");
                                 setStep("sign");
                               } catch (err: any) {
@@ -456,6 +525,7 @@ function SignPage() {
                                 setVerifyingFace(false);
                               }
                             }}
+
                           >
                             {verifyingFace ? "Validando..." : "Capturar foto"}
                           </Button>
