@@ -27,7 +27,7 @@ export const getFaceEmbedding = async (
 ): Promise<FaceDetectionResult | null> => {
   await loadModels();
   
-  const detections = await faceapi.detectAllFaces(input)
+  const detections = await faceapi.detectAllFaces(input, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
     .withFaceLandmarks()
     .withFaceDescriptors();
     

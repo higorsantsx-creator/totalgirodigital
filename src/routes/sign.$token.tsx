@@ -560,11 +560,11 @@ function SignPage() {
                                 const embedding = faceResult.embedding;
 
                                 const canvas = document.createElement("canvas");
-                                canvas.width = videoRef.current.videoWidth;
-                                canvas.height = videoRef.current.videoHeight;
+                                canvas.width = 160; // Standardize capture size
+                                canvas.height = 160;
                                 const ctx = canvas.getContext("2d");
                                 if (ctx) {
-                                  ctx.drawImage(videoRef.current, 0, 0);
+                                  ctx.drawImage(videoRef.current, 0, 0, 160, 160);
                                   setCapturedImage(canvas.toDataURL("image/jpeg", 0.8));
                                 }
                                 
