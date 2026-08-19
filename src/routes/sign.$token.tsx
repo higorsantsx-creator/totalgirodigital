@@ -9,8 +9,6 @@ import { CheckCircle2, XCircle, Loader2, ShieldCheck, Clock, FileText, User, Sen
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type DocStatus } from "@/components/status-badge";
 import logoAsset from "@/assets/total-giro-logo.png.asset.json";
-// @ts-ignore - Handled via dynamic import in effect
-import type { loadModels, getFaceEmbedding, validateFaceQuality } from "@/lib/face-api.client";
 
 
 type DocData = {
@@ -451,7 +449,8 @@ function SignPage() {
                                 const { validateFaceQuality, getFaceEmbedding } = await import("@/lib/face-api.client");
                                 
                                 // 1. Validate quality first
-                                const quality = await validateFaceQuality(videoRef.current);
+                                // @ts-ignore
+                                const quality = await (await import("@/lib/face-api.client")).validateFaceQuality(videoRef.current);
                                 if (!quality.valid) {
                                   setQualityError(quality.error || "Erro de qualidade facial");
                                   setVerifyingFace(false);
@@ -459,7 +458,8 @@ function SignPage() {
                                 }
 
                                 // 2. Generate embedding locally
-                                const embedding = await getFaceEmbedding(videoRef.current);
+                                // @ts-ignore
+                                const embedding = await (await import("@/lib/face-api.client")).getFaceEmbedding(videoRef.current);
                                 if (!embedding) {
                                   setQualityError("Não foi possível processar as características do rosto");
                                   setVerifyingFace(false);
