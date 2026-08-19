@@ -1,3 +1,7 @@
+/**
+ * Página de assinatura com biometria facial.
+ * Valida o EMBEDDING_ENCRYPTION_KEY no startup para garantir a segurança.
+ */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
