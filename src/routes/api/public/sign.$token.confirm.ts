@@ -59,7 +59,7 @@ export const Route = createFileRoute("/api/public/sign/$token/confirm")({
         const isFacialValid = await facialService.validateFacialAuthToken(
           body.facial_auth_token, 
           doc.id, 
-          doc.client_id
+          recipientId
         );
 
         if (!isFacialValid) {
